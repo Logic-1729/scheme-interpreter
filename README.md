@@ -30,3 +30,9 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
     else throw(RuntimeError("Unknown quoted typename"));
     
 但这个发现太简单了，于是GG
+
+第三次大版本更新是发现eq?有两种情况没特判GG
+
+    (null? (cdr (cdr (quote (1 2)))))
+    (eq? (void) (void))
+    (eq? (quote ()) (quote ()))
