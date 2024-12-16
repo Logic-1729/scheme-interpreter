@@ -5,17 +5,17 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
 
 第二次大版本修改是发现quote写的一坨答辩，以下例子过不了一点：
 
-( quote ( quote ( 1 2 ) ))
+    ( quote ( quote ( 1 2 ) ))
 
- (car (quote ( (1 . 2 ) 3 . 4)))
+    (car (quote ( (1 . 2 ) 3 . 4)))
  
- (cdr (quote ( (1 . 2 ) 3 . 4)))
+    (cdr (quote ( (1 . 2 ) 3 . 4)))
  
-( quote ( quote () 1 2 . ( 4 . 2 )))
+    ( quote ( quote () 1 2 . ( 4 . 2 )))
 
-(car ( quote ( quote () 1 2 . ( 4 . 2 ))))
+    (car ( quote ( quote () 1 2 . ( 4 . 2 ))))
 
-(cdr ( quote ( quote () 1 2 . ( 4 . 2 ))))
+    (cdr ( quote ( quote () 1 2 . ( 4 . 2 ))))
 
 我本来写得是
 
