@@ -211,13 +211,23 @@ Value Greater::evalRator(const Value &rand1, const Value &rand2) { // >
 }
 
 Value IsEq::evalRator(const Value &rand1, const Value &rand2) { // eq?
-    if(rand1->v_type==V_INT and rand2->v_type==V_INT)
+    // 检查类型是否为 Integer
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) == (dynamic_cast<Integer*>(rand2.get())->n));
-    else if(rand1->v_type==V_BOOL and rand2->v_type==V_BOOL)
+    }
+    // 检查类型是否为 Boolean
+    else if (rand1->v_type == V_BOOL && rand2->v_type == V_BOOL) {
         return BooleanV((dynamic_cast<Boolean*>(rand1.get())->b) == (dynamic_cast<Boolean*>(rand2.get())->b));
-    else if(rand1->v_type==V_SYM and rand2->v_type==V_SYM)
+    }
+    // 检查类型是否为 Symbol
+    else if (rand1->v_type == V_SYM && rand2->v_type == V_SYM) {
         return BooleanV((dynamic_cast<Symbol*>(rand1.get())->s) == (dynamic_cast<Symbol*>(rand2.get())->s));
-    else{
+    }
+    // 检查类型是否为 Null 或 Void
+    else if ((rand1->v_type == V_NULL && rand2->v_type == V_NULL) ||
+             (rand1->v_type == V_VOID && rand2->v_type == V_VOID)) {
+        return BooleanV(true);
+    }else {
         return BooleanV(rand1.get() == rand2.get());
     }
 }
