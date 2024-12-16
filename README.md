@@ -4,13 +4,16 @@
 which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 extratest 7
 
 第二次大版本修改是发现quote写的一坨答辩，以下例子过不了一点：
+
     ( quote ( quote ( 1 2 ) ))
     (car (quote ( (1 . 2 ) 3 . 4)))
     (cdr (quote ( (1 . 2 ) 3 . 4)))
     ( quote ( quote () 1 2 . ( 4 . 2 )))
     (car ( quote ( quote () 1 2 . ( 4 . 2 ))))
     (cdr ( quote ( quote () 1 2 . ( 4 . 2 ))))
+    
 我本来写得是
+
     if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
     else if (dynamic_cast<FalseSyntax*>(s.get())) return BooleanV(false);
     else if (dynamic_cast<Number*>(s.get())) return IntegerV(dynamic_cast<Number*>(s.get())->n);
