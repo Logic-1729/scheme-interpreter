@@ -106,21 +106,35 @@ Value Begin::eval(Assoc &e) {
     return es[es.size() - 1]->eval(e);
 }
 
-Value Quote::eval(Assoc &e) {
+Value Quote::eval(Assoc& e) {
     if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
     else if (dynamic_cast<FalseSyntax*>(s.get())) return BooleanV(false);
     else if (dynamic_cast<Number*>(s.get())) return IntegerV(dynamic_cast<Number*>(s.get())->n);
     else if (dynamic_cast<Identifier*>(s.get())) return SymbolV(dynamic_cast<Identifier*>(s.get())->s);
     else if (dynamic_cast<List*>(s.get())) {
-        std::vector<Syntax> stxs_got = dynamic_cast<List*>(s.get())->stxs;
-        if (stxs_got.size() == 0) return NullV();
-        Value now_pair = NullV();
-        for (int i = stxs_got.size() - 1; i >= 0; i--) {
-            now_pair = Value(new Pair(stxs_got[i]->parse(e)->eval(e), now_pair));
+        auto stxs_got=dynamic_cast<List*>(s.get())->stxs; List* temp = new List;
+        if (dynamic_cast<List*>(s.get())->stxs.empty()) {
+            return NullV();
+        } else if (stxs_got.size() == 1) {
+            return PairV(Value(Quote(stxs_got[0]).eval(e)), NullV());
+        } else {
+            int pos = -1, cnt = 0 , len=stxs_got.size();
+            for (int i = 0; i < len; i++) {
+                pos = (((dynamic_cast<Identifier*>(stxs_got[i].get()))&&(dynamic_cast<Identifier*>(stxs_got[i].get())->s == "."))? (i) :(pos));
+                cnt = (((dynamic_cast<Identifier*>(stxs_got[i].get()))&&(dynamic_cast<Identifier*>(stxs_got[i].get())->s == ".")) ? (cnt+1): (cnt));
+            }
+            if ((cnt > 1 || ((pos != len - 2) && (cnt)))||(cnt == 1 && (len < 3))) {
+                throw RuntimeError("Parm isn't fit");
+            }
+            if (len == 3) {
+                if ((dynamic_cast<Identifier*>(stxs_got[1].get()))&&(dynamic_cast<Identifier*>(stxs_got[1].get())->s == ".")) {
+                    return PairV(Quote(stxs_got[0]).eval(e), Quote(stxs_got[2]).eval(e));
+                }
+            }
+            (*temp).stxs = std::vector<Syntax>(stxs_got.begin() + 1, stxs_got.end());
+            return PairV(Value(Quote(stxs_got.front()).eval(e)), Value(Quote(Syntax(temp)).eval(e)));
         }
-        return now_pair;
-    }
-    else throw(RuntimeError("Unknown quoted typename"));
+    } else throw(RuntimeError("Unknown quoted typename"));
 }
 
 Value MakeVoid::eval(Assoc &e) { // (void)
