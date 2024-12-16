@@ -19,7 +19,7 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
 
 我本来写得是
 
-if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
+    if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
 
     else if (dynamic_cast<FalseSyntax*>(s.get())) return BooleanV(false);
 
