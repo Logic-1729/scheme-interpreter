@@ -1,4 +1,4 @@
-#ifndef SYNTAX
+#ifndef SYNTAX 
 #define SYNTAX
 
 #include <cstring>
@@ -8,16 +8,16 @@
 #include "shared.hpp"
 
 struct SyntaxBase {
-    virtual Expr parse(Assoc &) = 0;
-    virtual void show(std::ostream &) = 0;
-    virtual ~SyntaxBase() = default;
+  virtual Expr parse(Assoc &) = 0;
+  virtual void show(std::ostream &) = 0;
+  virtual ~SyntaxBase() = default;
 };
 
 struct Syntax {
     SharedPtr<SyntaxBase> ptr;
     // std :: shared_ptr<SyntaxBase> ptr;
     Syntax(SyntaxBase *);
-    SyntaxBase* operator -> () const;
+    SyntaxBase* operator -> () const; 
     SyntaxBase& operator * ();
     SyntaxBase* get() const;
     Expr parse(Assoc &);
