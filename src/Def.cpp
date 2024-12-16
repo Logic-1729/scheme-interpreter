@@ -1,7 +1,7 @@
 #include "Def.hpp"
 
-std :: map<std :: string, ExprType> primitives;
-std :: map<std :: string, ExprType> reserved_words;
+std ::map<std ::string, ExprType> primitives;
+std ::map<std ::string, ExprType> reserved_words;
 
 void initPrimitives()
 {

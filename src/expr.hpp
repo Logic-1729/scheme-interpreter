@@ -12,99 +12,115 @@ struct ExprBase
 {
     ExprType e_type;
     ExprBase(ExprType);
-    virtual Value eval(Assoc &) = 0;
+    virtual Value eval(Assoc &);
     virtual ~ExprBase() = default;
 };
 
-struct Expr {
+struct Expr
+{
     SharedPtr<ExprBase> ptr;
     Expr(ExprBase *);
-    ExprBase* operator -> () const;
-    ExprBase& operator * ();
-    ExprBase* get() const;
+    ExprBase *operator->() const;
+    ExprBase &operator*();
+    ExprBase *get() const;
 };
 
-struct Let : ExprBase {
+struct Let : ExprBase
+{
     std::vector<std::pair<std::string, Expr>> bind;
     Expr body;
-    Let(const std :: vector<std :: pair<std :: string, Expr>> &, const Expr &);
+    Let(const std ::vector<std ::pair<std ::string, Expr>> &, const Expr &);
     virtual Value eval(Assoc &) override;
 };
 
-struct Lambda : ExprBase {
+// only need to put all the name of parameters into x
+struct Lambda : ExprBase
+{
     std::vector<std::string> x;
     Expr e;
-    Lambda(const std :: vector<std :: string> &, const Expr &);
+    Lambda(const std ::vector<std ::string> &, const Expr &);
     virtual Value eval(Assoc &) override;
 };
 
-struct Apply : ExprBase {
+struct Apply : ExprBase
+{
     Expr rator;
     std::vector<Expr> rand;
-    Apply(const Expr &, const std :: vector<Expr> &);
+    Apply(const Expr &, const std ::vector<Expr> &);
     virtual Value eval(Assoc &) override;
 }; // this is used to handle function calling, where rator is the operator and rands are operands
 
-struct Letrec : ExprBase {
-  std::vector<std::pair<std::string, Expr>> bind;
-  Expr body;
-  Letrec(const std :: vector<std :: pair<std :: string, Expr>> &, const Expr &);
-  virtual Value eval(Assoc &) override;
+struct Letrec : ExprBase
+{
+    std::vector<std::pair<std::string, Expr>> bind;
+    Expr body;
+    Letrec(const std ::vector<std ::pair<std ::string, Expr>> &, const Expr &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct Var : ExprBase {
-  std::string x;
-  Var(const std :: string &);
-  virtual Value eval(Assoc &) override;
+struct Var : ExprBase
+{
+    std::string x;
+    Var(const std ::string &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct Fixnum : ExprBase {
-  int n;
-  Fixnum(int);
-  virtual Value eval(Assoc &) override;
+struct Fixnum : ExprBase
+{
+    int n;
+    Fixnum(int);
+    virtual Value eval(Assoc &) override;
 };
 
-struct If : ExprBase {
-  Expr cond;
-  Expr conseq;
-  Expr alter;
-  If(const Expr &, const Expr &, const Expr &);
-  virtual Value eval(Assoc &) override;
+struct If : ExprBase
+{
+    Expr cond;
+    Expr conseq;
+    Expr alter;
+    If(const Expr &, const Expr &, const Expr &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct True : ExprBase {
-  True();
-  virtual Value eval(Assoc &) override;
+struct True : ExprBase
+{
+    True();
+    virtual Value eval(Assoc &) override;
 };
 
-struct False : ExprBase {
-  False();
-  virtual Value eval(Assoc &) override;
+struct False : ExprBase
+{
+    False();
+    virtual Value eval(Assoc &) override;
 };
 
-struct Begin : ExprBase {
-  std::vector<Expr> es;
-  Begin(const std :: vector<Expr> &);
-  virtual Value eval(Assoc &) override;
+struct Begin : ExprBase
+{
+    std::vector<Expr> es;
+    Begin(const std ::vector<Expr> &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct Quote : ExprBase {
-  Syntax s;
-  Quote(const Syntax &);
-  virtual Value eval(Assoc &) override;
+struct Quote : ExprBase
+{
+    Syntax s;
+    Quote(const Syntax &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct MakeVoid : ExprBase {
+struct MakeVoid : ExprBase
+{
     MakeVoid();
     virtual Value eval(Assoc &) override;
 };
 
-struct Exit : ExprBase {
+struct Exit : ExprBase
+{
     Exit();
     virtual Value eval(Assoc &) override;
 };
 
-struct Binary : ExprBase {
+struct Binary : ExprBase
+{
     Expr rand1;
     Expr rand2;
     Binary(ExprType, const Expr &, const Expr &);
@@ -112,104 +128,124 @@ struct Binary : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
-struct Unary : ExprBase {
+struct Unary : ExprBase
+{
     Expr rand;
     Unary(ExprType, const Expr &);
     virtual Value evalRator(const Value &) = 0;
     virtual Value eval(Assoc &) override;
 };
 
-struct Mult : Binary {
+struct Mult : Binary
+{
     Mult(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Plus : Binary {
+struct Plus : Binary
+{
     Plus(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Minus : Binary {
+struct Minus : Binary
+{
     Minus(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Less : Binary {
+struct Less : Binary
+{
     Less(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct LessEq : Binary {
+struct LessEq : Binary
+{
     LessEq(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Equal : Binary {
+struct Equal : Binary
+{
     Equal(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct GreaterEq : Binary {
+struct GreaterEq : Binary
+{
     GreaterEq(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Greater : Binary {
+struct Greater : Binary
+{
     Greater(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct IsEq : Binary {
+struct IsEq : Binary
+{
     IsEq(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct Cons : Binary {
+struct Cons : Binary
+{
     Cons(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
-struct IsBoolean : Unary {
+struct IsBoolean : Unary
+{
     IsBoolean(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct IsFixnum : Unary {
+struct IsFixnum : Unary
+{
     IsFixnum(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct IsSymbol : Unary {
+struct IsSymbol : Unary
+{
     IsSymbol(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct IsNull : Unary {
+struct IsNull : Unary
+{
     IsNull(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct IsPair : Unary {
+struct IsPair : Unary
+{
     IsPair(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct IsProcedure : Unary {
+struct IsProcedure : Unary
+{
     IsProcedure(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct Not : Unary {
+struct Not : Unary
+{
     Not(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct Car : Unary {
+struct Car : Unary
+{
     Car(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
-struct Cdr : Unary {
+struct Cdr : Unary
+{
     Cdr(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
