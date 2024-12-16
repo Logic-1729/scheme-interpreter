@@ -28,4 +28,5 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
         return now_pair;
     }
     else throw(RuntimeError("Unknown quoted typename"));
-    但这个发现太简单了，于是GG
+    
+但这个发现太简单了，于是GG
