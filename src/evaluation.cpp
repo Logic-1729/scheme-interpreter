@@ -70,10 +70,53 @@ Value Letrec::eval(Assoc &env) {
 }
 
 Value Var::eval(Assoc &e) { // evaluation of variable
+    if ((x.empty())||(std::isdigit(x[0]) || x[0] == '.' || x[0] == '@')) throw RuntimeError("Wrong variable name");
+    for (int i = 0; i < x.size(); i++) {
+        if (x[i] == '#') {
+            throw(RuntimeError("undefined variable"));
+        }
+    }
+
     Value matched_value = find(x, e);
     if(matched_value.get()==nullptr){
-        // std::cout<<"failure when looking for var:"<<x<<std::endl;
-        throw(RuntimeError("undefined variable"));
+        if (primitives.count(x)) {
+            Expr exp=nullptr;
+            int type_name = -1;
+            if (primitives.count(x)) type_name = primitives[x];
+            switch (type_name) {
+                case E_MUL: { exp = (new Mult(new Var("parm1"), new Var("parm2")));break;}
+                case E_MINUS: {exp = (new Minus(new Var("parm1"), new Var("parm2")));break;}
+                case E_PLUS: {exp = (new Plus(new Var("parm1"), new Var("parm2")));break;}
+                case E_LT: {exp = (new Less(new Var("parm1"), new Var("parm2")));break;}
+                case E_LE: {exp = (new LessEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_EQ: {exp = (new Equal(new Var("parm1"), new Var("parm2")));break;}
+                case E_GE: {exp = (new GreaterEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_GT: {exp = (new Greater(new Var("parm1"), new Var("parm2")));break;}
+                case E_VOID: {exp = (new MakeVoid());break;}
+                case E_EQQ: {exp = (new IsEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_BOOLQ: {exp = (new IsBoolean(new Var("parm")));break;}
+                case E_INTQ: {exp = (new IsFixnum(new Var("parm")));break;}
+                case E_NULLQ: {exp = (new IsNull(new Var("parm")));break;}
+                case E_PAIRQ:{exp = (new IsPair(new Var("parm")));break;}
+                case E_PROCQ: {exp = (new IsProcedure(new Var("parm")));break;}
+                case E_SYMBOLQ: {exp = (new IsSymbol(new Var("parm")));break;}
+                case E_CONS: {exp = (new Cons(new Var("parm1"), new Var("parm2")));break;}
+                case E_NOT: {exp = (new Not(new Var("parm")));break;}
+                case E_CAR: {exp = (new Car(new Var("parm")));break;}
+                case E_CDR: {exp = (new Cdr(new Var("parm")));break;}
+                case E_EXIT: {exp = (new Exit());break;}
+            }
+            std::vector<std::string> parameters_;
+            if (dynamic_cast<Binary*>(exp.get())) {
+                parameters_.push_back("parm1");
+                parameters_.push_back("parm2");
+            } else if (dynamic_cast<Unary*>(exp.get())) {
+                parameters_.push_back("parm");
+            }
+            return ClosureV(parameters_, exp, e);
+        } else {
+            throw(RuntimeError("undefined variable"));
+        }
     }
     return matched_value;
 }
@@ -154,7 +197,6 @@ Value Unary::eval(Assoc &e) { // evaluation of single-operator primitive
 }
 
 Value Mult::evalRator(const Value &rand1, const Value &rand2) { // *
-    // std::cout<<rand1->v_type<<' '<<rand2->v_type<<std::endl;
     if(rand1->v_type==V_INT and rand2->v_type==V_INT){
         return IntegerV((dynamic_cast<Integer*>(rand1.get())->n) * (dynamic_cast<Integer*>(rand2.get())->n));
     }
