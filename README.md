@@ -1,9 +1,10 @@
 # scheme-interpreter
-第一次大版本修改在2024.12.13, first upload in 2024.12.16
---completing subtask 1-4, and simple letrec
-which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 extratest 7
+第一次大版本写完再2024.12.13,但是懒得传
+update time:2024-12-16 18:18:40
+自认为能过subtask1-4，上届的测试点没过的是：82 100 102 103 106 109 110 112 113 114 115 extratest 7
 
 第二次大版本修改是发现quote写的一坨答辩，以下例子过不了一点：
+update time:2024-12-16 22:01:13
 
     ( quote ( quote ( 1 2 ) ))
     (car (quote ( (1 . 2 ) 3 . 4)))
@@ -32,6 +33,7 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
 但这个发现太简单了，于是GG
 
 第三次大版本更新是发现eq?有两种情况没特判GG，，以下例子过不了一点：
+update time:2024-12-16 23:50:25
 
     (quote ( if 1 ))
     (null? (cdr (cdr (quote (1 2)))))
@@ -39,8 +41,11 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
     (eq? (quote ()) (quote ()))
 
 第四次大版本更新是发现我总算看懂了wxngg要表达的意思，primitive全部解释成绑定了环境的变量，而且支持将其解读成保留字，以下例子过不了一点：
+update time:2024-12-17 11:32:12
 
     (let ([+ 1]) +)
     ((if #t + -) 1 2)
     (let ([+ -]) (+ 2 1))
+
+现在过不了的测试点是：82 100 102 103 106 109 110 112 113 114 115 extratest 7
     
