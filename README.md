@@ -31,9 +31,16 @@ which wrong the following testpoint: 82 100 102 103 106 109 110 112 113 114 115 
     
 但这个发现太简单了，于是GG
 
-第三次大版本更新是发现eq?有两种情况没特判GG
+第三次大版本更新是发现eq?有两种情况没特判GG，，以下例子过不了一点：
 
     (quote ( if 1 ))
     (null? (cdr (cdr (quote (1 2)))))
     (eq? (void) (void))
     (eq? (quote ()) (quote ()))
+
+第四次大版本更新是发现我总算看懂了wxngg要表达的意思，primitive全部解释成绑定了环境的变量，而且支持将其解读成保留字，以下例子过不了一点：
+
+    (let ([+ 1]) +)
+    ((if #t + -) 1 2)
+    (let ([+ -]) (+ 2 1))
+    
