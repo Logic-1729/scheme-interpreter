@@ -11,11 +11,11 @@ extern std :: map<std :: string, ExprType> reserved_words;
 
 Value Let::eval(Assoc &env) {
     Assoc cur_env = env;
-    std::vector< std::pair<std::string, Value> > tobind;
-    for(auto binded_pair : bind){
+    std::vector<std::pair<std::string, Value>> tobind;
+    for (auto binded_pair : bind) {
         tobind.push_back({binded_pair.first, binded_pair.second->eval(env)});
     }
-    for(auto binded_pair: tobind){
+    for (auto binded_pair : tobind) {
         cur_env = extend(binded_pair.first, binded_pair.second, cur_env);
     }
     return body->eval(cur_env);
@@ -52,21 +52,31 @@ Value Apply::eval(Assoc &e) {
 }
 
 Value Letrec::eval(Assoc &env) {
-    Assoc new_env = env;
+    // 1. 在当前作用域的基础上创建一个新作用域 env1
+    Assoc env1 = env;
 
-    // 1. 先将所有变量绑定到 null
+    // 2. 将 var* 与 Value(nullptr) 绑定并引入 env1
     for (const auto &binding : bind) {
-        new_env = extend(binding.first, NullV(), new_env);
+        env1 = extend(binding.first, Value(nullptr), env1);
     }
 
-    // 2. 逐个求值并更新绑定
+    std::vector<std::pair<std::string,Value>> bindings;
+
+    // 3. 在 env1 下对 expr* 求值
     for (const auto &binding : bind) {
-        Value val = binding.second->eval(new_env);
-        modify(binding.first, val, new_env);
+        bindings.push_back(std::make_pair(binding.first, binding.second->eval(env1)));
     }
 
-    // 3. 求值 body
-    return body->eval(new_env);
+    // 4. 在 env1 的基础上创建一个新作用域 env2
+    Assoc env2 = env1;
+
+    // 5. 将 var* 与其对应的值绑定并引入 env2
+    for (const auto &binding: bindings) {
+        modify(binding.first, binding.second, env2);
+    }
+
+    // 6. 最后在 env2 下对 body 求值
+    return body->eval(env2);
 }
 
 Value Var::eval(Assoc &e) { // evaluation of variable

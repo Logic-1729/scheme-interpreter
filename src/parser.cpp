@@ -126,52 +126,47 @@ Expr List::parse(Assoc &env) {
             	return Expr(new Lambda(paras, pass_expr));
         	}
         	case E_LETREC:{
-            	if (stxs.size() != 3) throw RuntimeError("wrong parameter number for letrec");
-            	vector<pair<string, Expr>> binded_vector;
-            	List *binder_list_ptr = dynamic_cast<List*>(stxs[1].get());
-            	if (binder_list_ptr == nullptr) {
-                 	throw RuntimeError("Invalid letrec binding list");
-            	}
+    			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for letrec");
+    			vector<pair<string, Expr>> binded_vector;
+    			List *binder_list_ptr = dynamic_cast<List*>(stxs[1].get());
+    			if (binder_list_ptr == nullptr) {
+        			throw RuntimeError("Invalid letrec binding list");
+    			}
 
-            	// 创建一个临时环境，用于存储未完全解析的绑定
-            	Assoc temp_env = env;
+    			// 创建新的环境用于解析
+    			Assoc temp_env = env;
 
-            	// 首先将所有绑定的变量添加到临时环境中，初始值为 NullV()
-            	for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
-                 	List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
-                 	if (stx_tobind == nullptr || stx_tobind->stxs.size() != 2) {
-                      	throw RuntimeError("Invalid letrec binding");
-                 	}
+    			// 第一次遍历：收集所有变量名并在临时环境中绑定为 null
+    			for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
+        			List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
+        			if (stx_tobind == nullptr || stx_tobind->stxs.size() != 2) {
+            			throw RuntimeError("Invalid letrec binding");
+        			}
 
-                 	Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
-                 	if (temp_id == nullptr) {
-                      	throw RuntimeError("Invalid letrec binding variable");
-                 	}
+        			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
+        			if (temp_id == nullptr) {
+            			throw RuntimeError("Invalid letrec binding variable");
+        			}
 
-                 	string var_name = temp_id->s;
-                 	temp_env = extend(var_name, NullV(), temp_env); // 将变量添加到临时环境中，初始值为 NullV()
-            	}
+       				string var_name = temp_id->s;
+        			// 在临时环境中绑定变量，初始值为 null
+        			temp_env = extend(var_name, NullV(), temp_env);
+    			}
 
-            	// 解析每个绑定的表达式
-            	for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
-                 	List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
-                 	if (stx_tobind == nullptr || stx_tobind->stxs.size() != 2) {
-                      	throw RuntimeError("Invalid letrec binding");
-                 	}
+    			// 第二次遍历：使用包含所有变量的环境解析表达式
+    			for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
+        			List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
+        			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
+        			string var_name = temp_id->s;
 
-                 	Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
-                 	if (temp_id == nullptr) {
-                      	throw RuntimeError("Invalid letrec binding variable");
-                 	}
+        			// 在包含所有变量的环境中解析表达式
+        			Expr temp_store = stx_tobind->stxs[1]->parse(temp_env);
+        			binded_vector.push_back(mp(var_name, temp_store));
+    			}
 
-                 	string var_name = temp_id->s;
-                 	Expr temp_store = stx_tobind->stxs[1]->parse(temp_env); // 使用临时环境解析表达式
-                 	binded_vector.push_back(mp(var_name, temp_store));
-            	}
-
-            	// 返回 Letrec 表达式
-            	return Expr(new Letrec(binded_vector, stxs[2]->parse(temp_env)));
-        	}
+    			// 使用同样的环境解析 body
+    			return Expr(new Letrec(binded_vector, stxs[2]->parse(temp_env)));
+			}
         	default:
             	throw RuntimeError("Unknown reserved word: " + op);
     	}
