@@ -70,10 +70,53 @@ Value Letrec::eval(Assoc &env) {
 }
 
 Value Var::eval(Assoc &e) { // evaluation of variable
+    if ((x.empty())||(std::isdigit(x[0]) || x[0] == '.' || x[0] == '@')) throw RuntimeError("Wrong variable name");
+    for (int i = 0; i < x.size(); i++) {
+        if (x[i] == '#') {
+            throw(RuntimeError("undefined variable"));
+        }
+    }
+
     Value matched_value = find(x, e);
     if(matched_value.get()==nullptr){
-        // std::cout<<"failure when looking for var:"<<x<<std::endl;
-        throw(RuntimeError("undefined variable"));
+        if (primitives.count(x)) {
+            Expr exp=nullptr;
+            int type_name = -1;
+            if (primitives.count(x)) type_name = primitives[x];
+            switch (type_name) {
+                case E_MUL: { exp = (new Mult(new Var("parm1"), new Var("parm2")));break;}
+                case E_MINUS: {exp = (new Minus(new Var("parm1"), new Var("parm2")));break;}
+                case E_PLUS: {exp = (new Plus(new Var("parm1"), new Var("parm2")));break;}
+                case E_LT: {exp = (new Less(new Var("parm1"), new Var("parm2")));break;}
+                case E_LE: {exp = (new LessEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_EQ: {exp = (new Equal(new Var("parm1"), new Var("parm2")));break;}
+                case E_GE: {exp = (new GreaterEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_GT: {exp = (new Greater(new Var("parm1"), new Var("parm2")));break;}
+                case E_VOID: {exp = (new MakeVoid());break;}
+                case E_EQQ: {exp = (new IsEq(new Var("parm1"), new Var("parm2")));break;}
+                case E_BOOLQ: {exp = (new IsBoolean(new Var("parm")));break;}
+                case E_INTQ: {exp = (new IsFixnum(new Var("parm")));break;}
+                case E_NULLQ: {exp = (new IsNull(new Var("parm")));break;}
+                case E_PAIRQ:{exp = (new IsPair(new Var("parm")));break;}
+                case E_PROCQ: {exp = (new IsProcedure(new Var("parm")));break;}
+                case E_SYMBOLQ: {exp = (new IsSymbol(new Var("parm")));break;}
+                case E_CONS: {exp = (new Cons(new Var("parm1"), new Var("parm2")));break;}
+                case E_NOT: {exp = (new Not(new Var("parm")));break;}
+                case E_CAR: {exp = (new Car(new Var("parm")));break;}
+                case E_CDR: {exp = (new Cdr(new Var("parm")));break;}
+                case E_EXIT: {exp = (new Exit());break;}
+            }
+            std::vector<std::string> parameters_;
+            if (dynamic_cast<Binary*>(exp.get())) {
+                parameters_.push_back("parm1");
+                parameters_.push_back("parm2");
+            } else if (dynamic_cast<Unary*>(exp.get())) {
+                parameters_.push_back("parm");
+            }
+            return ClosureV(parameters_, exp, e);
+        } else {
+            throw(RuntimeError("undefined variable"));
+        }
     }
     return matched_value;
 }
@@ -106,21 +149,35 @@ Value Begin::eval(Assoc &e) {
     return es[es.size() - 1]->eval(e);
 }
 
-Value Quote::eval(Assoc &e) {
+Value Quote::eval(Assoc& e) {
     if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
     else if (dynamic_cast<FalseSyntax*>(s.get())) return BooleanV(false);
     else if (dynamic_cast<Number*>(s.get())) return IntegerV(dynamic_cast<Number*>(s.get())->n);
     else if (dynamic_cast<Identifier*>(s.get())) return SymbolV(dynamic_cast<Identifier*>(s.get())->s);
     else if (dynamic_cast<List*>(s.get())) {
-        std::vector<Syntax> stxs_got = dynamic_cast<List*>(s.get())->stxs;
-        if (stxs_got.size() == 0) return NullV();
-        Value now_pair = NullV();
-        for (int i = stxs_got.size() - 1; i >= 0; i--) {
-            now_pair = Value(new Pair(stxs_got[i]->parse(e)->eval(e), now_pair));
+        auto stxs_got=dynamic_cast<List*>(s.get())->stxs; List* temp = new List;
+        if (dynamic_cast<List*>(s.get())->stxs.empty()) {
+            return NullV();
+        } else if (stxs_got.size() == 1) {
+            return PairV(Value(Quote(stxs_got[0]).eval(e)), NullV());
+        } else {
+            int pos = -1, cnt = 0 , len=stxs_got.size();
+            for (int i = 0; i < len; i++) {
+                pos = (((dynamic_cast<Identifier*>(stxs_got[i].get()))&&(dynamic_cast<Identifier*>(stxs_got[i].get())->s == "."))? (i) :(pos));
+                cnt = (((dynamic_cast<Identifier*>(stxs_got[i].get()))&&(dynamic_cast<Identifier*>(stxs_got[i].get())->s == ".")) ? (cnt+1): (cnt));
+            }
+            if ((cnt > 1 || ((pos != len - 2) && (cnt)))||(cnt == 1 && (len < 3))) {
+                throw RuntimeError("Parm isn't fit");
+            }
+            if (len == 3) {
+                if ((dynamic_cast<Identifier*>(stxs_got[1].get()))&&(dynamic_cast<Identifier*>(stxs_got[1].get())->s == ".")) {
+                    return PairV(Quote(stxs_got[0]).eval(e), Quote(stxs_got[2]).eval(e));
+                }
+            }
+            (*temp).stxs = std::vector<Syntax>(stxs_got.begin() + 1, stxs_got.end());
+            return PairV(Value(Quote(stxs_got.front()).eval(e)), Value(Quote(Syntax(temp)).eval(e)));
         }
-        return now_pair;
-    }
-    else throw(RuntimeError("Unknown quoted typename"));
+    } else throw(RuntimeError("Unknown quoted typename"));
 }
 
 Value MakeVoid::eval(Assoc &e) { // (void)
@@ -140,7 +197,6 @@ Value Unary::eval(Assoc &e) { // evaluation of single-operator primitive
 }
 
 Value Mult::evalRator(const Value &rand1, const Value &rand2) { // *
-    // std::cout<<rand1->v_type<<' '<<rand2->v_type<<std::endl;
     if(rand1->v_type==V_INT and rand2->v_type==V_INT){
         return IntegerV((dynamic_cast<Integer*>(rand1.get())->n) * (dynamic_cast<Integer*>(rand2.get())->n));
     }
@@ -197,13 +253,23 @@ Value Greater::evalRator(const Value &rand1, const Value &rand2) { // >
 }
 
 Value IsEq::evalRator(const Value &rand1, const Value &rand2) { // eq?
-    if(rand1->v_type==V_INT and rand2->v_type==V_INT)
+    // 检查类型是否为 Integer
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) == (dynamic_cast<Integer*>(rand2.get())->n));
-    else if(rand1->v_type==V_BOOL and rand2->v_type==V_BOOL)
+    }
+    // 检查类型是否为 Boolean
+    else if (rand1->v_type == V_BOOL && rand2->v_type == V_BOOL) {
         return BooleanV((dynamic_cast<Boolean*>(rand1.get())->b) == (dynamic_cast<Boolean*>(rand2.get())->b));
-    else if(rand1->v_type==V_SYM and rand2->v_type==V_SYM)
+    }
+    // 检查类型是否为 Symbol
+    else if (rand1->v_type == V_SYM && rand2->v_type == V_SYM) {
         return BooleanV((dynamic_cast<Symbol*>(rand1.get())->s) == (dynamic_cast<Symbol*>(rand2.get())->s));
-    else{
+    }
+    // 检查类型是否为 Null 或 Void
+    else if ((rand1->v_type == V_NULL && rand2->v_type == V_NULL) ||
+             (rand1->v_type == V_VOID && rand2->v_type == V_VOID)) {
+        return BooleanV(true);
+    }else {
         return BooleanV(rand1.get() == rand2.get());
     }
 }
