@@ -48,4 +48,15 @@ update time:2024-12-17 11:32:12
     (let ([+ -]) (+ 2 1))
 
 现在过不了的测试点是：82 100 102 103 106 109 110 112 113 114 115 extratest 7,估计是let和letrec有一些很唐的错误
+
+第五次大版本更新是我观察了这些样例以及查阅了一些在线资料譬如：https://www.yinwang.org/blog-cn/2012/08/01/interpreter之后，我发现我的let逻辑有问题，我同时解析变量与绑定环境，对于简单的情况没出错（这么唐的错误居然能过subtask4），然后改完let后发现测试点113G了
+
+(let ((foo (lambda (lambda) (lambda))))
+  (let ((lambda foo) (bar (lambda () #t))) (foo bar)))
+
+然后怀疑是let写错了，然后发现lambda犯了跟let一样唐的问题
+我 是 傻 逼
+
+update time:2024-12-18 10:32:54
+
     
