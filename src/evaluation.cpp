@@ -91,8 +91,7 @@ Value Var::eval(Assoc &e) { // evaluation of variable
     if(matched_value.get()==nullptr){
         if (primitives.count(x)) {
             Expr exp=nullptr;
-            int type_name = -1;
-            if (primitives.count(x)) type_name = primitives[x];
+            int type_name = primitives[x];
             switch (type_name) {
                 case E_MUL: { exp = (new Mult(new Var("parm1"), new Var("parm2")));break;}
                 case E_MINUS: {exp = (new Minus(new Var("parm1"), new Var("parm2")));break;}
