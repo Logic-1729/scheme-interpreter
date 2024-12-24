@@ -71,58 +71,57 @@ Expr List::parse(Assoc &env) {
     if (reserved_words.count(op) != 0) {
     	switch (reserved_words[op]) {
         	case E_LET:{
-            	if (stxs.size() != 3) throw RuntimeError("wrong parameter number for let");
+            		if (stxs.size() != 3) throw RuntimeError("wrong parameter number for let");
         		vector<pair<string, Expr>> binded_vector;
-            	List *binder_list_ptr = dynamic_cast<List*>(stxs[1].get());
-            	if (binder_list_ptr == nullptr) {
-                  	throw RuntimeError("Invalid let binding list");
-            	}
+            		List *binder_list_ptr = dynamic_cast<List*>(stxs[1].get());
+            		if (binder_list_ptr == nullptr) {
+                  		throw RuntimeError("Invalid let binding list");
+            		}
 
-            	Assoc local_env = env; // 创建新的环境
-                for (int i = 0; i < binder_list_ptr->stxs.size(); i++) {
-                     auto pair_it = dynamic_cast<List*>(binder_list_ptr->stxs[i].get());
-                     if ((pair_it == nullptr)||(pair_it->stxs.size() != 2)) {
-                          throw RuntimeError("Invalid let binding list");
-                     }
-                     auto Identifiers = dynamic_cast<Identifier*>(pair_it->stxs.front().get());
-                     if (Identifiers == nullptr) {
-                          throw RuntimeError("Invalid input of identifier");
-                     }
-                      Expr temp_expr = pair_it->stxs.back().get()->parse(env);
-                      local_env = extend(Identifiers->s, NullV(), local_env);
-                      pair<string, Expr> tmp_pair = std::make_pair(Identifiers->s, temp_expr);
-                      binded_vector.push_back(tmp_pair);
+            		Assoc local_env = env; // 创建新的环境
+                	for (int i = 0; i < binder_list_ptr->stxs.size(); i++) {
+                     	auto pair_it = dynamic_cast<List*>(binder_list_ptr->stxs[i].get());
+                     	if ((pair_it == nullptr)||(pair_it->stxs.size() != 2)) {
+                          	throw RuntimeError("Invalid let binding list");
+                     	}
+                     	auto Identifiers = dynamic_cast<Identifier*>(pair_it->stxs.front().get());
+                     	if (Identifiers == nullptr) {
+                          	throw RuntimeError("Invalid input of identifier");
+                     	}
+                      	Expr temp_expr = pair_it->stxs.back().get()->parse(env);
+                      	local_env = extend(Identifiers->s, NullV(), local_env);
+                      	pair<string, Expr> tmp_pair = std::make_pair(Identifiers->s, temp_expr);
+                      	binded_vector.push_back(tmp_pair);
 
-                }
-             	return Expr(new Let(binded_vector, stxs[2]->parse(local_env))); // 使用 local_env
+                	}
+             		return Expr(new Let(binded_vector, stxs[2]->parse(local_env))); // 使用 local_env
         	}
         	case E_IF:{if (stxs.size() != 4) throw RuntimeError("wrong parameter number for if");return Expr(new If(stxs[1]->parse(env), stxs[2]->parse(env), stxs[3]->parse(env)));}
         	case E_BEGIN:{
-             	vector<Expr> passed_exprs;
+             		vector<Expr> passed_exprs;
     		      	for (size_t i = 1; i < stxs.size(); i++) {
-        		        	passed_exprs.push_back(stxs[i]->parse(env));
-    			  	}
-             	return Expr(new Begin(passed_exprs));
+        		        passed_exprs.push_back(stxs[i]->parse(env));
+    			  }
+             		return Expr(new Begin(passed_exprs));
         	}
         	case E_QUOTE:{if (stxs.size() != 2) throw RuntimeError("wrong parameter number for quote");return Expr(new Quote(stxs[1]));}
         	case E_LAMBDA:{
-            	if (stxs.size() != 3) throw RuntimeError("wrong parameter number for lambda");
-            	Assoc New_env = env;
-                std::vector<std::string> vars;
-                List* paras_ptr = dynamic_cast<List*>(stxs[1].get());
-                if (paras_ptr == nullptr) {
-                	throw RuntimeError("Invalid lambda parameter list");
-            	}
-            	for (int i = 0; i < paras_ptr->stxs.size(); i++) {
-                     if (auto tmp_var = dynamic_cast<Var*>(paras_ptr->stxs[i].get()->parse(env).get())) {
-                         vars.push_back(tmp_var->x);
-                         New_env = extend(tmp_var->x, NullV(), New_env);
-                     } else {
-                         throw RuntimeError("Invalid input of variable");
-                     }
-                }
-                return Expr(new Lambda(vars, stxs[2].get()->parse(New_env)));
-                break;
+            		if (stxs.size() != 3) throw RuntimeError("wrong parameter number for lambda");
+            		Assoc New_env = env;
+                	std::vector<std::string> vars;
+                	List* paras_ptr = dynamic_cast<List*>(stxs[1].get());
+                	if (paras_ptr == nullptr) {
+                		throw RuntimeError("Invalid lambda parameter list");
+            		}
+            		for (int i = 0; i < paras_ptr->stxs.size(); i++) {
+                     		if (auto tmp_var = dynamic_cast<Var*>(paras_ptr->stxs[i].get()->parse(env).get())) {
+                         		vars.push_back(tmp_var->x);
+                         		New_env = extend(tmp_var->x, NullV(), New_env);
+                     		} else {
+                         		throw RuntimeError("Invalid input of variable");
+                     		}	
+                	}
+                	return Expr(new Lambda(vars, stxs[2].get()->parse(New_env)));break;
         	}
         	case E_LETREC:{
     			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for letrec");
@@ -165,7 +164,7 @@ Expr List::parse(Assoc &env) {
 
     			// 使用同样的环境解析 body
     			return Expr(new Letrec(binded_vector, stxs[2]->parse(temp_env)));
-			}
+		}
         	default:
             	throw RuntimeError("Unknown reserved word: " + op);
     	}
