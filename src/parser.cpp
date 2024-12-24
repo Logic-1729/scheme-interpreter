@@ -128,21 +128,19 @@ Expr List::parse(Assoc &env) {
 
         			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
         			if (temp_id == nullptr) {throw RuntimeError("Invalid letrec binding variable");}
-
-       				string var_name = temp_id->s;
+				
         			// 在临时环境中绑定变量，初始值为 null
-        			temp_env = extend(var_name, NullV(), temp_env);
+        			temp_env = extend(temp_id->s, NullV(), temp_env);
     			}
 
     			// 第二次遍历：使用包含所有变量的环境解析表达式
     			for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
         			List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
         			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
-        			string var_name = temp_id->s;
 
         			// 在包含所有变量的环境中解析表达式
         			Expr temp_store = stx_tobind->stxs[1]->parse(temp_env);
-        			binded_vector.push_back(mp(var_name, temp_store));
+        			binded_vector.push_back(mp(temp_id->s, temp_store));
     			}
 
     			// 使用同样的环境解析 body
