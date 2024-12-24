@@ -45,21 +45,13 @@ Expr List::parse(Assoc &env) {
     Identifier *id = dynamic_cast<Identifier*>(stxs[0].get());
     if (id == nullptr) {
         // 如果不是 Identifier，则将其解析为表达式并构造 Apply 表达式
-        Expr opexpr = stxs[0]->parse(env);
-        vector<Expr> to_expr;
+        vector<Expr> parameters;
         for (size_t i = 1; i < stxs.size(); i++) {
-            to_expr.push_back(stxs[i]->parse(env));
+            parameters.push_back(stxs[i]->parse(env));
         }
-        return Expr(new Apply(opexpr, to_expr));
+        return Expr(new Apply(stxs[0]->parse(env), parameters));
     }else{
     string op = id->s;
-    if (find(op, env).get() != nullptr) {
-         vector<Expr> parameters;
-         for (int i = 1; i < stxs.size(); i++) {
-             parameters.push_back(stxs[i].get()->parse(env));
-         }
-         return new Apply(stxs[0].get()->parse(env), parameters);
-    }
     // 检查是否为库函数
     if (primitives.count(op) != 0) {
         vector<Expr> parameters;
