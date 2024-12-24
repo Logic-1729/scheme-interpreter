@@ -52,6 +52,13 @@ Expr List::parse(Assoc &env) {
         return Expr(new Apply(stxs[0]->parse(env), parameters));
     }else{
     string op = id->s;
+    if (find(op, env).get() != nullptr) {
+         vector<Expr> parameters;
+        for (size_t i = 1; i < stxs.size(); i++) {
+            parameters.push_back(stxs[i].get()->parse(env));
+        }
+        return Expr(new Apply(stxs[0].get()->parse(env), parameters));s);
+    }
     // 检查是否为库函数
     if (primitives.count(op) != 0) {
         vector<Expr> parameters;
