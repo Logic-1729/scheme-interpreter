@@ -28,9 +28,7 @@ Value Lambda::eval(Assoc &env) { // lambda expression
 
 Value Apply::eval(Assoc &e) {
     Value mid_fun = rator->eval(e);
-    if (mid_fun->v_type != V_PROC) {
-        throw RuntimeError("Attempt to apply a non-procedure");
-    }
+    if (mid_fun->v_type != V_PROC) {throw RuntimeError("Attempt to apply a non-procedure");}
 
     Closure* clos_ptr = dynamic_cast<Closure*>(mid_fun.get());
     Assoc cur_env = clos_ptr->env;
@@ -40,9 +38,7 @@ Value Apply::eval(Assoc &e) {
         args.push_back(rand[i]->eval(e));
     }
 
-    if (args.size() != clos_ptr->parameters.size()) {
-        throw RuntimeError("Wrong number of arguments");
-    }
+    if (args.size() != clos_ptr->parameters.size()) {throw RuntimeError("Wrong number of arguments");}
 
     for (int i = 0; i < clos_ptr->parameters.size(); i++) {
         cur_env = extend(clos_ptr->parameters[i], args[i], cur_env);
@@ -81,11 +77,7 @@ Value Letrec::eval(Assoc &env) {
 
 Value Var::eval(Assoc &e) { // evaluation of variable
     if ((x.empty())||(std::isdigit(x[0]) || x[0] == '.' || x[0] == '@')) throw RuntimeError("Wrong variable name");
-    for (int i = 0; i < x.size(); i++) {
-        if (x[i] == '#') {
-            throw(RuntimeError("undefined variable"));
-        }
-    }
+    for (int i = 0; i < x.size(); i++) {if (x[i] == '#') {throw(RuntimeError("undefined variable"));}}
 
     Value matched_value = find(x, e);
     if(matched_value.get()==nullptr){
