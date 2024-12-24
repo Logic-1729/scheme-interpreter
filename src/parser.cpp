@@ -37,9 +37,7 @@ Expr FalseSyntax :: parse(Assoc &env) {
 }
 
 Expr List::parse(Assoc &env) {
-    if (stxs.empty()) {
-        throw RuntimeError("Empty list is not a valid expression");
-    }
+    if (stxs.empty()) {throw RuntimeError("Empty list is not a valid expression");}
 
     // 检查第一个元素是否为 Identifier
     Identifier *id = dynamic_cast<Identifier*>(stxs[0].get());
