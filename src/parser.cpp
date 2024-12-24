@@ -57,7 +57,7 @@ Expr List::parse(Assoc &env) {
         for (size_t i = 1; i < stxs.size(); i++) {
             parameters.push_back(stxs[i].get()->parse(env));
         }
-        return Expr(new Apply(stxs[0].get()->parse(env), parameters));s);
+        return Expr(new Apply(stxs[0].get()->parse(env), parameters));
     }
     // 检查是否为库函数
     if (primitives.count(op) != 0) {
