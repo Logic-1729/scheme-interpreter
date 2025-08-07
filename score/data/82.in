@@ -1,0 +1,8 @@
+(letrec ((a (lambda (u v w x)
+              (if (= u 0) (b v w x) (a (- u 1) v w x))))
+         (b (lambda (q r x) (let ((p (* q r))) (e (* q r) p x))))
+         (c (lambda (x) (* 5 x)))
+         (e (lambda (n p x)
+              (if (= n (quote 0)) (c p) (o (- n 1) p x))))
+         (o (lambda (n p x) (if (= 0 n) (c x) (e (- n 1) p x)))))
+  (let ((x 5)) (a 3 2 1 x)))

@@ -1,0 +1,14 @@
+(letrec ((add1 (lambda (n) (+ n 1)))
+         (map (lambda (f ls)
+                (if (null? ls)
+                    (quote ())
+                    (cons (f (car ls)) (map f (cdr ls))))))
+         (sum (lambda (ls)
+                (if (null? ls) 0 (+ (car ls) (sum (cdr ls)))))))
+  (let ((ls (quote (5 4 3 2 1))))
+    (let ((ls (cons
+                (quote 10)
+                (cons
+                  (quote 9)
+                  (cons (quote 8) (cons (quote 7) (cons (quote 6) ls)))))))
+      (sum (map add1 ls)))))

@@ -1,0 +1,9 @@
+(let ((x 7) (y 4))
+  (let ((t.6 (if (fixnum? x)
+                 (if (= x 4) (if (fixnum? y) (= y 7) #f) #f)
+                 #f)))
+    (if t.6
+        t.6
+        (if (fixnum? x)
+            (if (= x 7) (if (fixnum? y) (= y 4) #f) #f)
+            #f))))

@@ -1,0 +1,13 @@
+(letrec ((extend (lambda (num alist)
+                   (if (null? alist)
+                       (cons (cons num 1) (quote ()))
+                       (if (= num (car (car alist)))
+                           (cons
+                             (cons num (+ 1 (cdr (car alist))))
+                             (cdr alist))
+                           (cons (car alist) (extend num (cdr alist)))))))
+         (loop (lambda (ls alist)
+                 (if (null? ls)
+                     alist
+                     (loop (cdr ls) (extend (car ls) alist))))))
+  (loop (quote (1 3 4 5 5 4 5 2 3 4 1)) (quote ())))

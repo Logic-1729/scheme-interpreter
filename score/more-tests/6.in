@@ -1,0 +1,2 @@
+(letrec ((f (lambda (g) (g))) (g (lambda () #t)))
+  (f (lambda () #f)))

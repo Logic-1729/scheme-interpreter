@@ -1,0 +1,543 @@
+(let ((eval (letrec ((extend (lambda (x v e)
+                               (cons (cons x v) e)))
+                     (extend* (lambda (xs vs e)
+                                (if (null? xs)
+                                    e
+                                    (extend*
+                                      (cdr xs)
+                                      (cdr vs)
+                                      (extend (car xs) (car vs) e)))))
+                     (map (lambda (f l)
+                            (if (null? l)
+                                (quote ())
+                                (cons (f (car l)) (map f (cdr l))))))
+                     (find (lambda (x e)
+                             (if (null? e)
+                                 #f
+                                 (if (eq? (car (car e)) x)
+                                     (cdr (car e))
+                                     (find x (cdr e))))))
+                     (apply (lambda (clos vs)
+                              (if (eq? (car clos) (quote lambda))
+                                  (let ((xs (car (cdr clos)))
+                                        (env (car (cdr (cdr clos))))
+                                        (e (cdr (cdr (cdr clos)))))
+                                    (eval1 e (extend* xs vs env)))
+                                  (let ((x (car (cdr clos)))
+                                        (x-f* (car (cdr (cdr clos))))
+                                        (env (cdr (cdr (cdr clos)))))
+                                    (let ((f (find x x-f*))
+                                          (env^ (extend*
+                                                  (map (lambda (x-f)
+                                                         (car x-f))
+                                                       x-f*)
+                                                  (map (lambda (x-f)
+                                                         (cons
+                                                           (quote letrec)
+                                                           (cons
+                                                             (car x-f)
+                                                             (cons
+                                                               x-f*
+                                                               env))))
+                                                       x-f*)
+                                                  env)))
+                                      (let ((xs (car (cdr f)))
+                                            (e (car (cdr (cdr f)))))
+                                        (eval1
+                                          e
+                                          (extend* xs vs env^))))))))
+                     (eval1* (lambda (es env)
+                               (if (null? es)
+                                   (quote ())
+                                   (cons
+                                     (eval1 (car es) env)
+                                     (eval1* (cdr es) env)))))
+                     (eval-binary-operator (lambda (rator)
+                                             (if (eq? rator (quote *))
+                                                 (lambda (x y) (* x y))
+                                                 (if (eq? rator (quote +))
+                                                     (lambda (x y) (+ x y))
+                                                     (if (eq? rator
+                                                              (quote -))
+                                                         (lambda (x y)
+                                                           (- x y))
+                                                         (if (eq? rator
+                                                                  (quote
+                                                                    <))
+                                                             (lambda (x y)
+                                                               (< x y))
+                                                             (if (eq? rator
+                                                                      (quote
+                                                                        <=))
+                                                                 (lambda (x
+                                                                          y)
+                                                                   (<= x
+                                                                       y))
+                                                                 (if (eq? rator
+                                                                          (quote
+                                                                            =))
+                                                                     (lambda (x
+                                                                              y)
+                                                                       (= x
+                                                                          y))
+                                                                     (if (eq? rator
+                                                                              (quote
+                                                                                >))
+                                                                         (lambda (x
+                                                                                  y)
+                                                                           (> x
+                                                                              y))
+                                                                         (if (eq? rator
+                                                                                  (quote
+                                                                                    >=))
+                                                                             (lambda (x
+                                                                                      y)
+                                                                               (>= x
+                                                                                   y))
+                                                                             (if (eq? rator
+                                                                                      (quote
+                                                                                        eq?))
+                                                                                 (lambda (x
+                                                                                          y)
+                                                                                   (eq? x
+                                                                                        y))
+                                                                                 (if (eq? rator
+                                                                                          (quote
+                                                                                            cons))
+                                                                                     (lambda (x
+                                                                                              y)
+                                                                                       (cons
+                                                                                         x
+                                                                                         y))
+                                                                                     #f))))))))))))
+                     (eval-unary-operator (lambda (rator)
+                                            (if (eq? rator
+                                                     (quote boolean?))
+                                                (lambda (x) (boolean? x))
+                                                (if (eq? rator
+                                                         (quote fixnum?))
+                                                    (lambda (x)
+                                                      (fixnum? x))
+                                                    (if (eq? rator
+                                                             (quote null?))
+                                                        (lambda (x)
+                                                          (null? x))
+                                                        (if (eq? rator
+                                                                 (quote
+                                                                   pair?))
+                                                            (lambda (x)
+                                                              (pair? x))
+                                                            (if (eq? rator
+                                                                     (quote
+                                                                       procedure?))
+                                                                (lambda (x)
+                                                                  (procedure?
+                                                                    x))
+                                                                (if (eq? rator
+                                                                         (quote
+                                                                           car))
+                                                                    (lambda (x)
+                                                                      (car x))
+                                                                    (if (eq? rator
+                                                                             (quote
+                                                                               cdr))
+                                                                        (lambda (x)
+                                                                          (cdr x))
+                                                                        (if (eq? rator
+                                                                                 (quote
+                                                                                   symbol?))
+                                                                            (lambda (x)
+                                                                              (symbol?
+                                                                                x))
+                                                                            #f))))))))))
+                     (eval1 (lambda (e env)
+                              (if (fixnum? e)
+                                  e
+                                  (if (boolean? e)
+                                      e
+                                      (if (symbol? e)
+                                          (find e env)
+                                          (if (eq? (car e) (quote quote))
+                                              (car (cdr e))
+                                              (if (eq? (car e) (quote if))
+                                                  (if (eval1
+                                                        (car (cdr e))
+                                                        env)
+                                                      (eval1
+                                                        (car (cdr (cdr e)))
+                                                        env)
+                                                      (eval1
+                                                        (car (cdr (cdr (cdr e))))
+                                                        env))
+                                                  (if (eq? (car e)
+                                                           (quote lambda))
+                                                      (cons
+                                                        (quote lambda)
+                                                        (cons
+                                                          (car (cdr e))
+                                                          (cons
+                                                            env
+                                                            (car (cdr (cdr e))))))
+                                                      (if (eq? (car e)
+                                                               (quote let))
+                                                          (let ((x-e* (car (cdr e))))
+                                                            (let ((e* (map (lambda (x-e)
+                                                                             (car (cdr x-e)))
+                                                                           x-e*)))
+                                                              (let ((v* (eval1*
+                                                                          e*
+                                                                          env)))
+                                                                (eval1
+                                                                  (car (cdr (cdr e)))
+                                                                  (extend*
+                                                                    (map (lambda (x-e)
+                                                                           (car x-e))
+                                                                         x-e*)
+                                                                    v*
+                                                                    env)))))
+                                                          (if (eq? (car e)
+                                                                   (quote
+                                                                     letrec))
+                                                              (let ((x--f* (car (cdr e))))
+                                                                (let ((x-f* (map (lambda (x--f)
+                                                                                   (cons
+                                                                                     (car x--f)
+                                                                                     (car (cdr x--f))))
+                                                                                 x--f*))
+                                                                      (x* (map (lambda (x--f)
+                                                                                 (car x--f))
+                                                                               x--f*)))
+                                                                  (eval1
+                                                                    (car (cdr (cdr e)))
+                                                                    (extend*
+                                                                      x*
+                                                                      (map (lambda (x)
+                                                                             (cons
+                                                                               (quote
+                                                                                 letrec)
+                                                                               (cons
+                                                                                 x
+                                                                                 (cons
+                                                                                   x-f*
+                                                                                   env))))
+                                                                           x*)
+                                                                      env))))
+                                                              (if (eval-binary-operator
+                                                                    (car e))
+                                                                  ((eval-binary-operator
+                                                                     (car e))
+                                                                    (eval1
+                                                                      (car (cdr e))
+                                                                      env)
+                                                                    (eval1
+                                                                      (car (cdr (cdr e)))
+                                                                      env))
+                                                                  (if (eval-unary-operator
+                                                                        (car e))
+                                                                      ((eval-unary-operator
+                                                                         (car e))
+                                                                        (eval1
+                                                                          (car (cdr e))
+                                                                          env))
+                                                                      (apply
+                                                                        (eval1
+                                                                          (car e)
+                                                                          env)
+                                                                        (eval1*
+                                                                          (cdr e)
+                                                                          env)))))))))))))))
+              (lambda (e) (eval1 e (quote ())))))
+      (quote-eval (quote
+                    (letrec ((extend (lambda (x v e) (cons (cons x v) e)))
+                             (extend* (lambda (xs vs e)
+                                        (if (null? xs)
+                                            e
+                                            (extend*
+                                              (cdr xs)
+                                              (cdr vs)
+                                              (extend
+                                                (car xs)
+                                                (car vs)
+                                                e)))))
+                             (map (lambda (f l)
+                                    (if (null? l)
+                                        (quote ())
+                                        (cons
+                                          (f (car l))
+                                          (map f (cdr l))))))
+                             (find (lambda (x e)
+                                     (if (null? e)
+                                         #f
+                                         (if (eq? (car (car e)) x)
+                                             (cdr (car e))
+                                             (find x (cdr e))))))
+                             (apply (lambda (clos vs)
+                                      (if (eq? (car clos) (quote lambda))
+                                          (let ((xs (car (cdr clos)))
+                                                (env (car (cdr (cdr clos))))
+                                                (e (cdr (cdr (cdr clos)))))
+                                            (eval1 e (extend* xs vs env)))
+                                          (let ((x (car (cdr clos)))
+                                                (x-f* (car (cdr (cdr clos))))
+                                                (env (cdr (cdr (cdr clos)))))
+                                            (let ((f (find x x-f*))
+                                                  (env^ (extend*
+                                                          (map (lambda (x-f)
+                                                                 (car x-f))
+                                                               x-f*)
+                                                          (map (lambda (x-f)
+                                                                 (cons
+                                                                   (quote
+                                                                     letrec)
+                                                                   (cons
+                                                                     (car x-f)
+                                                                     (cons
+                                                                       x-f*
+                                                                       env))))
+                                                               x-f*)
+                                                          env)))
+                                              (let ((xs (car (cdr f)))
+                                                    (e (car (cdr (cdr f)))))
+                                                (eval1
+                                                  e
+                                                  (extend*
+                                                    xs
+                                                    vs
+                                                    env^))))))))
+                             (eval1* (lambda (es env)
+                                       (if (null? es)
+                                           (quote ())
+                                           (cons
+                                             (eval1 (car es) env)
+                                             (eval1* (cdr es) env)))))
+                             (eval-binary-operator (lambda (rator)
+                                                     (if (eq? rator
+                                                              (quote *))
+                                                         (lambda (x y)
+                                                           (* x y))
+                                                         (if (eq? rator
+                                                                  (quote
+                                                                    +))
+                                                             (lambda (x y)
+                                                               (+ x y))
+                                                             (if (eq? rator
+                                                                      (quote
+                                                                        -))
+                                                                 (lambda (x
+                                                                          y)
+                                                                   (- x y))
+                                                                 (if (eq? rator
+                                                                          (quote
+                                                                            <))
+                                                                     (lambda (x
+                                                                              y)
+                                                                       (< x
+                                                                          y))
+                                                                     (if (eq? rator
+                                                                              (quote
+                                                                                <=))
+                                                                         (lambda (x
+                                                                                  y)
+                                                                           (<= x
+                                                                               y))
+                                                                         (if (eq? rator
+                                                                                  (quote
+                                                                                    =))
+                                                                             (lambda (x
+                                                                                      y)
+                                                                               (= x
+                                                                                  y))
+                                                                             (if (eq? rator
+                                                                                      (quote
+                                                                                        >))
+                                                                                 (lambda (x
+                                                                                          y)
+                                                                                   (> x
+                                                                                      y))
+                                                                                 (if (eq? rator
+                                                                                          (quote
+                                                                                            >=))
+                                                                                     (lambda (x
+                                                                                              y)
+                                                                                       (>= x
+                                                                                           y))
+                                                                                     (if (eq? rator
+                                                                                              (quote
+                                                                                                eq?))
+                                                                                         (lambda (x
+                                                                                                  y)
+                                                                                           (eq? x
+                                                                                                y))
+                                                                                         (if (eq? rator
+                                                                                                  (quote
+                                                                                                    cons))
+                                                                                             (lambda (x
+                                                                                                      y)
+                                                                                               (cons
+                                                                                                 x
+                                                                                                 y))
+                                                                                             #f))))))))))))
+                             (eval-unary-operator (lambda (rator)
+                                                    (if (eq? rator
+                                                             (quote
+                                                               boolean?))
+                                                        (lambda (x)
+                                                          (boolean? x))
+                                                        (if (eq? rator
+                                                                 (quote
+                                                                   fixnum?))
+                                                            (lambda (x)
+                                                              (fixnum? x))
+                                                            (if (eq? rator
+                                                                     (quote
+                                                                       null?))
+                                                                (lambda (x)
+                                                                  (null?
+                                                                    x))
+                                                                (if (eq? rator
+                                                                         (quote
+                                                                           pair?))
+                                                                    (lambda (x)
+                                                                      (pair?
+                                                                        x))
+                                                                    (if (eq? rator
+                                                                             (quote
+                                                                               procedure?))
+                                                                        (lambda (x)
+                                                                          (procedure?
+                                                                            x))
+                                                                        (if (eq? rator
+                                                                                 (quote
+                                                                                   car))
+                                                                            (lambda (x)
+                                                                              (car x))
+                                                                            (if (eq? rator
+                                                                                     (quote
+                                                                                       cdr))
+                                                                                (lambda (x)
+                                                                                  (cdr x))
+                                                                                (if (eq? rator
+                                                                                         (quote
+                                                                                           symbol?))
+                                                                                    (lambda (x)
+                                                                                      (symbol?
+                                                                                        x))
+                                                                                    #f))))))))))
+                             (eval1 (lambda (e env)
+                                      (if (fixnum? e)
+                                          e
+                                          (if (boolean? e)
+                                              e
+                                              (if (symbol? e)
+                                                  (find e env)
+                                                  (if (eq? (car e)
+                                                           (quote quote))
+                                                      (car (cdr e))
+                                                      (if (eq? (car e)
+                                                               (quote if))
+                                                          (if (eval1
+                                                                (car (cdr e))
+                                                                env)
+                                                              (eval1
+                                                                (car (cdr (cdr e)))
+                                                                env)
+                                                              (eval1
+                                                                (car (cdr (cdr (cdr e))))
+                                                                env))
+                                                          (if (eq? (car e)
+                                                                   (quote
+                                                                     lambda))
+                                                              (cons
+                                                                (quote
+                                                                  lambda)
+                                                                (cons
+                                                                  (car (cdr e))
+                                                                  (cons
+                                                                    env
+                                                                    (car (cdr (cdr e))))))
+                                                              (if (eq? (car e)
+                                                                       (quote
+                                                                         let))
+                                                                  (let ((x-e* (car (cdr e))))
+                                                                    (let ((e* (map (lambda (x-e)
+                                                                                     (car (cdr x-e)))
+                                                                                   x-e*)))
+                                                                      (let ((v* (eval1*
+                                                                                  e*
+                                                                                  env)))
+                                                                        (eval1
+                                                                          (car (cdr (cdr e)))
+                                                                          (extend*
+                                                                            (map (lambda (x-e)
+                                                                                   (car x-e))
+                                                                                 x-e*)
+                                                                            v*
+                                                                            env)))))
+                                                                  (if (eq? (car e)
+                                                                           (quote
+                                                                             letrec))
+                                                                      (let ((x--f* (car (cdr e))))
+                                                                        (let ((x-f* (map (lambda (x--f)
+                                                                                           (cons
+                                                                                             (car x--f)
+                                                                                             (car (cdr x--f))))
+                                                                                         x--f*))
+                                                                              (x* (map (lambda (x--f)
+                                                                                         (car x--f))
+                                                                                       x--f*)))
+                                                                          (eval1
+                                                                            (car (cdr (cdr e)))
+                                                                            (extend*
+                                                                              x*
+                                                                              (map (lambda (x)
+                                                                                     (cons
+                                                                                       (quote
+                                                                                         letrec)
+                                                                                       (cons
+                                                                                         x
+                                                                                         (cons
+                                                                                           x-f*
+                                                                                           env))))
+                                                                                   x*)
+                                                                              env))))
+                                                                      (if (eval-binary-operator
+                                                                            (car e))
+                                                                          ((eval-binary-operator
+                                                                             (car e))
+                                                                            (eval1
+                                                                              (car (cdr e))
+                                                                              env)
+                                                                            (eval1
+                                                                              (car (cdr (cdr e)))
+                                                                              env))
+                                                                          (if (eval-unary-operator
+                                                                                (car e))
+                                                                              ((eval-unary-operator
+                                                                                 (car e))
+                                                                                (eval1
+                                                                                  (car (cdr e))
+                                                                                  env))
+                                                                              (apply
+                                                                                (eval1
+                                                                                  (car e)
+                                                                                  env)
+                                                                                (eval1*
+                                                                                  (cdr e)
+                                                                                  env)))))))))))))))
+                      (lambda (e) (eval1 e (quote ())))))))
+  (letrec ((deep (lambda (n)
+                   (if (<= n 0)
+                       (quote
+                         (letrec ((fac (lambda (n)
+                                         (if (<= n 0)
+                                             1
+                                             (* n (fac (- n 1)))))))
+                           (fac 10)))
+                       (cons
+                         quote-eval
+                         (cons
+                           (cons
+                             (quote quote)
+                             (cons (deep (- n 1)) (quote ())))
+                           (quote ())))))))
+    (eval (deep 1))))

@@ -1,0 +1,24 @@
+((lambda (x)
+   (if (if (eq? x 5)
+           x
+           (if x
+               (if 1
+                   (if 2
+                       (if 3
+                           (if 4
+                               (let ((t.10 6))
+                                 (if t.10
+                                     t.10
+                                     (let ((t.11 7))
+                                       (if t.11
+                                           t.11
+                                           (let ((t.12 8))
+                                             (if t.12 t.12 9))))))
+                               #f)
+                           #f)
+                       #f)
+                   #f)
+               #f))
+       3
+       (void)))
+  4)

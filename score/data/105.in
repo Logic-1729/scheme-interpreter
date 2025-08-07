@@ -1,0 +1,12 @@
+(letrec ((num-list? (lambda (ls)
+                      (if (null? ls)
+                          #t
+                          (if (fixnum? (car ls))
+                              (num-list? (cdr ls))
+                              #f))))
+         (list-product (lambda (ls)
+                         (if (null? ls)
+                             1
+                             (* (car ls) (list-product (cdr ls)))))))
+  (let ((ls (quote (1 2 3 4 5))))
+    (if (num-list? ls) (list-product ls) #f)))

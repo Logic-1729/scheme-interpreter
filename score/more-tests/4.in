@@ -1,0 +1,5 @@
+(letrec ((f (letrec ((g (lambda (x)
+                          (if (<= x 0) #t (if (g (- x 1)) #f #t)))))
+              (lambda (x) (g (* 2 x)))))
+         (g (lambda () #f)))
+  (f 5))

@@ -1,0 +1,2 @@
+(let ((x (cons 1 (quote ()))) (y (cons 1 (quote ()))))
+  (eq? x y))

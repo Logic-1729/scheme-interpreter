@@ -1,0 +1,7 @@
+(letrec ((fib (lambda (n k)
+                (if (let ((t.7 (= n 0))) (if t.7 t.7 (= n 1)))
+                    (k 1)
+                    (fib (- n 1)
+                         (lambda (w)
+                           (fib (- n 2) (lambda (v) (k (+ w v))))))))))
+  (fib 10 (lambda (x) x)))

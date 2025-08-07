@@ -1,0 +1,7 @@
+(cons
+  (let ((f (lambda (h v) (* h v))))
+    (let ((k (lambda (x) (+ x 5))))
+      (letrec ((x 15))
+        (letrec ((g (lambda (x) (+ 1 x))))
+          (k (g (let ((g 3)) (f g x))))))))
+  (quote ()))

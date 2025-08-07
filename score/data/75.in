@@ -1,0 +1,1 @@
+(let ((x (quote (1 2)))) (eq? x x))

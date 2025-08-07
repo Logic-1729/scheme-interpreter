@@ -1,0 +1,17 @@
+(letrec ((count-leaves (lambda (p)
+                         (if (pair? p)
+                             (+ (count-leaves (car p))
+                                (count-leaves (cdr p)))
+                             1))))
+  (count-leaves
+    (cons
+      (cons (quote 0) (cons (quote 0) (quote 0)))
+      (cons
+        (cons
+          (cons (cons (quote 0) (cons (quote 0) (quote 0))) (quote 0))
+          (quote 0))
+        (cons
+          (cons
+            (cons (quote 0) (quote 0))
+            (cons (quote 0) (cons (quote 0) (quote 0))))
+          (cons (cons (quote 0) (quote 0)) (quote 0)))))))

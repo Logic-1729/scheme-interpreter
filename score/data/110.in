@@ -1,0 +1,6 @@
+(let ((begin (lambda (x y) (+ x y)))
+      (set! (lambda (x y) (* x y))))
+  (let ((lambda (lambda (x) (begin 1 x))))
+    (let ((lambda (lambda (set! 1 2))))
+      (let ((let (set! lambda lambda)))
+        (begin let (set! lambda (set! 4 (begin 2 3))))))))

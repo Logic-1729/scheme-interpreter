@@ -1,0 +1,6 @@
+(let ((a 5) (b 4))
+  (letrec ((c (lambda (d e) (* d e)))
+           (f (lambda (g h) (cons g h))))
+    (if (let ((t.8 (> (c a b) 15))) (if t.8 t.8 (= (c a b) 20)))
+        (f a b)
+        (void))))

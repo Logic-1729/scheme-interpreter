@@ -1,0 +1,8 @@
+(let ((n 5))
+  (let ((a 1))
+    (let ((a (* a n)))
+      (let ((n (- n 1)))
+        (let ((a (* a n)))
+          (let ((n (- n 1)))
+            (let ((a (* a n)))
+              (let ((n (- n 1))) (let ((a (* a n))) a)))))))))

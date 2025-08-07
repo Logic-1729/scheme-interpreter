@@ -1,0 +1,10 @@
+(letrec ((thunk-num (lambda (n) (lambda () n)))
+         (force (lambda (th) (th)))
+         (add-ths (lambda (th1 th2 th3 th4)
+                    (+ (+ (force th1) (force th2))
+                       (+ (force th3) (force th4))))))
+  (add-ths
+    (thunk-num 5)
+    (thunk-num 17)
+    (thunk-num 7)
+    (thunk-num 9)))

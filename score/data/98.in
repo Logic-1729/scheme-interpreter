@@ -1,0 +1,8 @@
+(let ((t #t) (f #f))
+  (let ((bools (cons t f))
+        (id (lambda (x) (if (if x #f #t) f t))))
+    (letrec ((even (lambda (x)
+                     (if (= x 0) (id (car bools)) (odd (- x 1)))))
+             (odd (lambda (y)
+                    (if (= y 0) (id (cdr bools)) (even (- y 1))))))
+      (odd 5))))

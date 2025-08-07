@@ -1,0 +1,1 @@
+(if #t (quote ()) ((lambda (x) (x x)) (lambda (x) (x x))))

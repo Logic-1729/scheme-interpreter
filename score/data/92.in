@@ -1,0 +1,7 @@
+(letrec ((remq (lambda (x ls)
+                 (if (null? ls)
+                     (quote ())
+                     (if (eq? (car ls) x)
+                         (remq x (cdr ls))
+                         (cons (car ls) (remq x (cdr ls))))))))
+  (remq 3 (quote (3 1 3))))

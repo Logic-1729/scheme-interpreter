@@ -1,0 +1,9 @@
+(letrec ((depth (lambda (ls)
+                  (if (null? ls)
+                      1
+                      (if (pair? (car ls))
+                          (let ((l ((lambda (m) (+ m 1)) (depth (car ls))))
+                                (r (depth (cdr ls))))
+                            (if (< l r) r l))
+                          (depth (cdr ls)))))))
+  (depth (quote (1 2 (3 (4 (5 (6 7))))))))

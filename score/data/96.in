@@ -1,0 +1,5 @@
+(letrec ((fib (lambda (n)
+                (letrec ((fib (lambda (n a b)
+                                (if (= n 0) a (fib (- n 1) b (+ b a))))))
+                  (fib n 0 1)))))
+  (fib 5))

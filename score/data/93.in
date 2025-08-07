@@ -1,0 +1,5 @@
+(letrec ((gcd (lambda (x y)
+                (if (= y 0)
+                    x
+                    (gcd (if (> x y) (- x y) x) (if (> x y) y (- y x)))))))
+  (gcd 1071 1029))

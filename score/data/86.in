@@ -1,0 +1,27 @@
+(letrec ((list-ref (lambda (ls offset)
+                     (if (= offset 0)
+                         (car ls)
+                         (list-ref (cdr ls) (- offset 1)))))
+         (add (lambda (v w) (+ v w)))
+         (sub (lambda (v w) (- v w)))
+         (mult (lambda (v w) (* v w)))
+         (expt (lambda (v w) (if (= w 0) 1 (* v (expt v (- w 1))))))
+         (selector (lambda (op* sel rand1 rand2)
+                     (if (null? sel)
+                         0
+                         (cons
+                           ((list-ref op* (car sel))
+                             (car rand1)
+                             (car rand2))
+                           (selector
+                             op*
+                             (cdr sel)
+                             (cdr rand1)
+                             (cdr rand2))))))
+         (sum (lambda (ls)
+                (if (pair? ls) (+ (car ls) (sum (cdr ls))) 0))))
+  (sum (selector
+         (cons add (cons sub (cons mult (cons expt (quote ())))))
+         (quote (2 0 1 3 2))
+         (quote (5 9 10 2 3))
+         (quote (3 1 3 3 8)))))

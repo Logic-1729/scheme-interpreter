@@ -1,0 +1,8 @@
+(letrec ((sub1 (lambda (n) (- n 1)))
+         (fib (lambda (n)
+                (if (= 0 n)
+                    0
+                    (if (= 1 n)
+                        1
+                        (+ (fib (sub1 n)) (fib (sub1 (sub1 n)))))))))
+  (fib 10))

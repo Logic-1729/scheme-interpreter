@@ -1,0 +1,40 @@
+(letrec ((merge (lambda (ls ls2)
+                  (if (null? ls)
+                      ls2
+                      (if (null? ls2)
+                          ls
+                          (if (< (car ls) (car ls2))
+                              (cons (car ls) (merge (cdr ls) ls2))
+                              (cons (car ls2) (merge ls (cdr ls2))))))))
+         (sort (lambda (ls)
+                 (if (null? ls)
+                     ls
+                     (if (null? (cdr ls))
+                         ls
+                         (let ((halves (halves
+                                         ls
+                                         (quote ())
+                                         (quote ())
+                                         #t)))
+                           (let ((first (car halves))
+                                 (second (car (cdr halves))))
+                             (merge (sort first) (sort second))))))))
+         (halves (lambda (ls first second first?)
+                   (if (null? ls)
+                       (cons first (cons second (quote ())))
+                       (if first?
+                           (halves
+                             (cdr ls)
+                             (cons (car ls) first)
+                             second
+                             #f)
+                           (halves
+                             (cdr ls)
+                             first
+                             (cons (car ls) second)
+                             #t)))))
+         (pend (lambda (ls ls2)
+                 (if (null? ls) ls2 (cons (car ls) (pend (cdr ls) ls2))))))
+  (pend
+    (sort (quote (1 5 5 8 2 3 9)))
+    (sort (quote (5 9 5 7 7 8 7)))))

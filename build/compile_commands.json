@@ -1,0 +1,50 @@
+[
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/main.cpp.o -c /home/logic/Scheme/src/main.cpp",
+  "file": "/home/logic/Scheme/src/main.cpp",
+  "output": "CMakeFiles/code.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/syntax.cpp.o -c /home/logic/Scheme/src/syntax.cpp",
+  "file": "/home/logic/Scheme/src/syntax.cpp",
+  "output": "CMakeFiles/code.dir/src/syntax.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/RE.cpp.o -c /home/logic/Scheme/src/RE.cpp",
+  "file": "/home/logic/Scheme/src/RE.cpp",
+  "output": "CMakeFiles/code.dir/src/RE.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/parser.cpp.o -c /home/logic/Scheme/src/parser.cpp",
+  "file": "/home/logic/Scheme/src/parser.cpp",
+  "output": "CMakeFiles/code.dir/src/parser.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/expr.cpp.o -c /home/logic/Scheme/src/expr.cpp",
+  "file": "/home/logic/Scheme/src/expr.cpp",
+  "output": "CMakeFiles/code.dir/src/expr.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/value.cpp.o -c /home/logic/Scheme/src/value.cpp",
+  "file": "/home/logic/Scheme/src/value.cpp",
+  "output": "CMakeFiles/code.dir/src/value.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/evaluation.cpp.o -c /home/logic/Scheme/src/evaluation.cpp",
+  "file": "/home/logic/Scheme/src/evaluation.cpp",
+  "output": "CMakeFiles/code.dir/src/evaluation.cpp.o"
+},
+{
+  "directory": "/home/logic/Scheme/build",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/code.dir/src/Def.cpp.o -c /home/logic/Scheme/src/Def.cpp",
+  "file": "/home/logic/Scheme/src/Def.cpp",
+  "output": "CMakeFiles/code.dir/src/Def.cpp.o"
+}
+]

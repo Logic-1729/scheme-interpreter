@@ -1,0 +1,4 @@
+(letrec ((f (cons
+              #f
+              (lambda (n) (if (<= n 0) 0 (+ n ((cdr f) (- n 1))))))))
+  ((cdr f) 10))

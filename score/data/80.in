@@ -1,0 +1,5 @@
+(let ((x (cons (quote 1) (quote ()))))
+  (let ((x (cons (quote 2) x)))
+    (let ((x (cons (quote 3) x)))
+      (let ((x (cons (quote 4) x)))
+        (let ((x (cons (quote 5) x))) x)))))
