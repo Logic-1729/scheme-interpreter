@@ -3,7 +3,6 @@
 
 #include "Def.hpp"
 #include "syntax.hpp"
-#include "shared.hpp"
 #include <memory>
 #include <cstring>
 #include <vector>
@@ -17,7 +16,7 @@ struct ExprBase
 };
 
 struct Expr {
-    SharedPtr<ExprBase> ptr;
+    std::shared_ptr<ExprBase> ptr;
     Expr(ExprBase *);
     ExprBase* operator->() const;
     ExprBase& operator*();

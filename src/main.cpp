@@ -11,18 +11,15 @@
 extern std::map<std::string, ExprType> primitives;
 extern std::map<std::string, ExprType> reserved_words;
 
-void REPL()
-{
+void REPL(){
     // read - evaluation - print loop
     Assoc global_env = empty();
-    while (1)
-    {
+    while (1){
         #ifndef ONLINE_JUDGE
             std::cout << "scm> ";
         #endif
         Syntax stx = readSyntax(std::cin); // read
-        try
-        {
+        try{
             Expr expr = stx->parse(global_env); // parse
             // stx->show(std::cout); // syntax print
             Value val = expr->eval(global_env);
@@ -30,8 +27,7 @@ void REPL()
                 break;
             val->show(std::cout); // value print
         }
-        catch (const RuntimeError &RE)
-        {
+        catch (const RuntimeError &RE){
             // std::cout << RE.message();
             std::cout << "RuntimeError";
         }
@@ -41,8 +37,6 @@ void REPL()
 
 
 int main(int argc, char *argv[]) {
-    initPrimitives();
-    initReservedWords();
     REPL();
     return 0;
 }

@@ -31,7 +31,4 @@ enum ValueType
     V_TERMINATE
 };
 
-void initPrimitives();
-void initReservedWords();
-
 #endif

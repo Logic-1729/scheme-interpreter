@@ -12,13 +12,11 @@ Assoc empty() {
   return Assoc(nullptr);
 }
 
-Assoc extend(const std::string &x, const Value &v, Assoc &lst)
-{
+Assoc extend(const std::string &x, const Value &v, Assoc &lst){
     return Assoc(new AssocList(x, v, lst));
 }
 
-void modify(const std::string &x, const Value &v, Assoc &lst)
-{
+void modify(const std::string &x, const Value &v, Assoc &lst){
     for (auto i = lst; i.get() != nullptr; i = i->next)
         if (x == i->x)
         {

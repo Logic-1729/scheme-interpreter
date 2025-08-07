@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 #include "Def.hpp"
-#include "shared.hpp"
 
 struct SyntaxBase {
     virtual Expr parse(Assoc &) = 0;
@@ -14,8 +13,7 @@ struct SyntaxBase {
 };
 
 struct Syntax {
-    SharedPtr<SyntaxBase> ptr;
-    // std::shared_ptr<SyntaxBase> ptr;
+    std::shared_ptr<SyntaxBase> ptr;
     Syntax(SyntaxBase *);
     SyntaxBase* operator->() const;
     SyntaxBase& operator*();

@@ -1,6 +1,4 @@
 file(REMOVE_RECURSE
-  "/home/logic/Scheme/code"
-  "/home/logic/Scheme/code.pdb"
   "CMakeFiles/code.dir/src/Def.cpp.o"
   "CMakeFiles/code.dir/src/Def.cpp.o.d"
   "CMakeFiles/code.dir/src/RE.cpp.o"
@@ -17,6 +15,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/code.dir/src/syntax.cpp.o.d"
   "CMakeFiles/code.dir/src/value.cpp.o"
   "CMakeFiles/code.dir/src/value.cpp.o.d"
+  "code"
+  "code.pdb"
 )
 
 # Per-language clean rules from dependency scanning.
