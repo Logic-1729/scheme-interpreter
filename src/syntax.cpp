@@ -2,12 +2,12 @@
 #include <cstring>
 #include <vector>
 
-Syntax :: Syntax(SyntaxBase *stx) : ptr(stx) {}
-SyntaxBase* Syntax :: operator -> () const { return ptr.get(); }
-SyntaxBase& Syntax :: operator * () { return *ptr; }
-SyntaxBase* Syntax :: get() const { return ptr.get(); }
+Syntax::Syntax(SyntaxBase *stx) : ptr(stx) {}
+SyntaxBase* Syntax::operator->() const { return ptr.get(); }
+SyntaxBase& Syntax::operator*() { return *ptr; }
+SyntaxBase* Syntax::get() const { return ptr.get(); }
 
-Number :: Number(int n) : n(n) {}
+Number::Number(int n) : n(n) {}
 void Number::show(std::ostream &os) {
   os << "the-number-" << n;
 }
@@ -20,19 +20,19 @@ void FalseSyntax::show(std::ostream &os) {
   os << "#f";
 }
 
-Identifier :: Identifier(const std :: string &s1) : s(s1) {}
+Identifier::Identifier(const std::string &s1) : s(s1) {}
 void Identifier::show(std::ostream &os) {
   os << s;
 }
 
-List :: List() {}
+List::List() {}
 void List::show(std::ostream &os) {
-  os << '(';
-  for (auto stx : stxs) {
-    stx -> show(os);
-    os << ' ';
-  }
-  os << ')';
+    os << '(';
+    for (auto stx : stxs) {
+        stx->show(os);
+        os << ' ';
+    }
+    os << ')';
 }
 
 std::istream &readSpace(std::istream &is) {
@@ -96,7 +96,7 @@ Syntax readItem(std::istream &is) {
 Syntax readList(std::istream &is) {
     List *stx = new List();
     while (readSpace(is).peek() != ')' && readSpace(is).peek() != ']')
-        stx -> stxs.push_back(readItem(is));
+        stx->stxs.push_back(readItem(is));
     is.get(); // ')'
     return Syntax(stx);
 }

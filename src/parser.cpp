@@ -9,30 +9,30 @@
 #include <string>
 #include <iostream>
 #define mp make_pair
-using std :: string;
-using std :: vector;
-using std :: pair;
+using std::string;
+using std::vector;
+using std::pair;
 
-extern std :: map<std :: string, ExprType> primitives;
-extern std :: map<std :: string, ExprType> reserved_words;
+extern std::map<std::string, ExprType> primitives;
+extern std::map<std::string, ExprType> reserved_words;
 
 Expr Syntax::parse(Assoc &env) {
     throw RuntimeError("Unimplemented parse method");
 }
 
-Expr Number :: parse(Assoc &env) {
+Expr Number::parse(Assoc &env) {
     return Expr(new Fixnum(n));
 }
 
-Expr Identifier :: parse(Assoc &env) {
+Expr Identifier::parse(Assoc &env) {
     return Expr(new Var(s));
 }
 
-Expr TrueSyntax :: parse(Assoc &env) {
+Expr TrueSyntax::parse(Assoc &env) {
     return Expr(new True());
 }
 
-Expr FalseSyntax :: parse(Assoc &env) {
+Expr FalseSyntax::parse(Assoc &env) {
     return Expr(new False());
 }
 
