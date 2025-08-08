@@ -315,4 +315,21 @@ struct Cdr : Unary {
     virtual Value evalRator(const Value &) override;
 };
 
+struct Set : ExprBase {
+    std::string var;
+    Expr e;
+    Set(const std::string &, const Expr &);
+    virtual Value eval(Assoc &) override;
+};
+
+struct SetCar : Binary {
+    SetCar(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct SetCdr : Binary {
+    SetCdr(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
 #endif

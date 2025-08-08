@@ -9,11 +9,12 @@ std::map<std::string, ExprType> primitives = {
     {"procedure?", E_PROCQ}, {"symbol?", E_SYMBOLQ}, {"list?", E_LISTQ}, {"cons", E_CONS},
     {"not", E_NOT}, {"car", E_CAR}, {"cdr", E_CDR}, {"list", E_LIST},
     {"quotient", E_QUOTIENT}, {"modulo", E_MODULO}, {"expt", E_EXPT},
+    {"set-car!", E_SETCAR}, {"set-cdr!", E_SETCDR},
     {"exit", E_EXIT}
 };
 
 std::map<std::string, ExprType> reserved_words = {
     {"let", E_LET}, {"lambda", E_LAMBDA}, {"letrec", E_LETREC},
     {"if", E_IF}, {"begin", E_BEGIN}, {"quote", E_QUOTE},
-    {"define", E_DEFINE}, {"and", E_AND}, {"or", E_OR}
+    {"define", E_DEFINE}, {"set!", E_SET}, {"and", E_AND}, {"or", E_OR}
 };

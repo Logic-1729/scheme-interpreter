@@ -95,6 +95,23 @@ Value Letrec::eval(Assoc &env) {
     return body->eval(env2);
 }
 
+Value Set::eval(Assoc &env) {
+    // 检查变量是否存在
+    Value var_value = find(var, env);
+    if (var_value.get() == nullptr) {
+        throw RuntimeError("Undefined variable: " + var);
+    }
+    
+    // 计算新值
+    Value new_val = e->eval(env);
+    
+    // 修改环境中的变量值
+    modify(var, new_val, env);
+    
+    // set! 返回 void
+    return VoidV();
+}
+
 Value Var::eval(Assoc &e) { // evaluation of variable
     if ((x.empty()) || (std::isdigit(x[0]) || x[0] == '.' || x[0] == '@')) 
         throw RuntimeError("Wrong variable name");
@@ -135,6 +152,8 @@ Value Var::eval(Assoc &e) { // evaluation of variable
                 case E_NOT: { exp = (new Not(new Var("parm"))); break; }
                 case E_CAR: { exp = (new Car(new Var("parm"))); break; }
                 case E_CDR: { exp = (new Cdr(new Var("parm"))); break; }
+                case E_SETCAR: { exp = (new SetCar(new Var("parm1"), new Var("parm2"))); break; }
+                case E_SETCDR: { exp = (new SetCdr(new Var("parm1"), new Var("parm2"))); break; }
                 case E_EXIT: { exp = (new Exit()); break; }
             }
             std::vector<std::string> parameters_;
@@ -822,6 +841,28 @@ Value DivVar::evalRator(const std::vector<Value> &args) { // / with multiple arg
         den = -den;
     }
     return RationalV(num, den);
+}
+
+Value SetCar::evalRator(const Value &rand1, const Value &rand2) { // set-car!
+    if (rand1->v_type != V_PAIR) {
+        throw RuntimeError("set-car!: argument must be a pair");
+    }
+    
+    Pair* pair_ptr = dynamic_cast<Pair*>(rand1.get());
+    pair_ptr->car = rand2;
+    
+    return VoidV();
+}
+
+Value SetCdr::evalRator(const Value &rand1, const Value &rand2) { // set-cdr!
+    if (rand1->v_type != V_PAIR) {
+        throw RuntimeError("set-cdr!: argument must be a pair");
+    }
+    
+    Pair* pair_ptr = dynamic_cast<Pair*>(rand1.get());
+    pair_ptr->cdr = rand2;
+    
+    return VoidV();
 }
 
 Value ListFunc::evalRator(const std::vector<Value> &args) { // list function

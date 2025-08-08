@@ -119,3 +119,9 @@ Not::Not(const Expr &r1) : Unary(E_NOT, r1) {}
 Car::Car(const Expr &r1) : Unary(E_CAR, r1) {}
 
 Cdr::Cdr(const Expr &r1) : Unary(E_CDR, r1) {}
+
+Set::Set(const std::string &var, const Expr &e) : ExprBase(E_SET), var(var), e(e) {}
+
+SetCar::SetCar(const Expr &r1, const Expr &r2) : Binary(E_SETCAR, r1, r2) {}
+
+SetCdr::SetCdr(const Expr &r1, const Expr &r2) : Binary(E_SETCDR, r1, r2) {}

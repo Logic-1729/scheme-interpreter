@@ -294,6 +294,12 @@ Expr List::parse(Assoc &env) {
 				return Expr(new Define(var_id->s, stxs[2]->parse(env)));
 			}
 		}
+		case E_SET:{
+			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for set!");
+			Identifier *var_id = dynamic_cast<Identifier*>(stxs[1].get());
+			if (var_id == nullptr) {throw RuntimeError("Invalid set! variable");}
+			return Expr(new Set(var_id->s, stxs[2]->parse(env)));
+		}
         	default:
             	throw RuntimeError("Unknown reserved word: " + op);
     	}

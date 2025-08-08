@@ -105,8 +105,7 @@ struct Procedure : ValueBase {
 };
 Value ProcedureV(const std::vector<std::string> &, const Expr &, const Assoc &);
 
-struct String : ValueBase 
-{
+struct String : ValueBase {
     std::string s;
     String(const std::string &);
     virtual void show(std::ostream &) override;
