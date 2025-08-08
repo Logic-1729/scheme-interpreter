@@ -52,6 +52,14 @@ struct Integer : ValueBase {
 };
 Value IntegerV(int);
 
+struct Rational : ValueBase {
+    int numerator;
+    int denominator;
+    Rational(int, int);
+    virtual void show(std::ostream &) override;
+};
+Value RationalV(int, int);
+
 struct Boolean : ValueBase {
     bool b;
     Boolean(bool);
@@ -88,14 +96,14 @@ struct Pair : ValueBase {
 };
 Value PairV(const Value &, const Value &);
 
-struct Closure : ValueBase {
+struct Procedure : ValueBase {
     std::vector<std::string> parameters;
     Expr e;
     Assoc env;
-    Closure(const std::vector<std::string> &, const Expr &, const Assoc &);
+    Procedure(const std::vector<std::string> &, const Expr &, const Assoc &);
     virtual void show(std::ostream &) override;
 };
-Value ClosureV(const std::vector<std::string> &, const Expr &, const Assoc &);
+Value ProcedureV(const std::vector<std::string> &, const Expr &, const Assoc &);
 
 struct String : ValueBase 
 {

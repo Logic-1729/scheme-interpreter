@@ -36,8 +36,22 @@ void List::show(std::ostream &os) {
 }
 
 std::istream &readSpace(std::istream &is) {
-  while (isspace(is.peek()))
-    is.get();
+  while (true) {
+    // 跳过空白字符
+    while (isspace(is.peek()))
+      is.get();
+    
+    // 检查是否是注释
+    if (is.peek() == ';') {
+      // 跳过注释直到行末
+      while (is.peek() != '\n' && is.peek() != EOF)
+        is.get();
+      // 继续循环以跳过注释后的空白字符
+    } else {
+      // 没有更多空白字符或注释，退出循环
+      break;
+    }
+  }
   return is;
 }
 
@@ -52,13 +66,22 @@ Syntax readItem(std::istream &is) {
   if (is.peek() == '\'')
   {
     is.get();
-    return readList(is);
+    // 读取单引号后的语法元素
+    Syntax quoted_syntax = readItem(is);
+    
+    // 创建 (quote <syntax>) 的列表结构
+    List *quote_list = new List();
+    quote_list->stxs.push_back(Syntax(new Identifier("quote")));
+    quote_list->stxs.push_back(quoted_syntax);
+    
+    return Syntax(quote_list);
   }
   std::string s;
   do {
     int c = is.peek();
     if (c == '(' || c == ')' ||
         c == '[' || c == ']' || 
+        c == ';' ||  // 添加分号作为分隔符
         isspace(c) ||
         c == EOF)
       break;
@@ -95,7 +118,7 @@ Syntax readItem(std::istream &is) {
 
 Syntax readList(std::istream &is) {
     List *stx = new List();
-    while (readSpace(is).peek() != ')' && readSpace(is).peek() != ']')
+    while (readSpace(is).peek() != ')' && readSpace(is).peek() != ')')
         stx->stxs.push_back(readItem(is));
     is.get(); // ')'
     return Syntax(stx);

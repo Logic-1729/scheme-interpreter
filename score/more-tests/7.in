@@ -115,9 +115,9 @@
                                                      (quote boolean?))
                                                 (lambda (x) (boolean? x))
                                                 (if (eq? rator
-                                                         (quote fixnum?))
+                                                         (quote number?))
                                                     (lambda (x)
-                                                      (fixnum? x))
+                                                      (number? x))
                                                     (if (eq? rator
                                                              (quote null?))
                                                         (lambda (x)
@@ -151,7 +151,7 @@
                                                                                 x))
                                                                             #f))))))))))
                      (eval1 (lambda (e env)
-                              (if (fixnum? e)
+                              (if (number? e)
                                   e
                                   (if (boolean? e)
                                       e
@@ -385,9 +385,9 @@
                                                           (boolean? x))
                                                         (if (eq? rator
                                                                  (quote
-                                                                   fixnum?))
+                                                                   number?))
                                                             (lambda (x)
-                                                              (fixnum? x))
+                                                              (number? x))
                                                             (if (eq? rator
                                                                      (quote
                                                                        null?))
@@ -424,7 +424,7 @@
                                                                                         x))
                                                                                     #f))))))))))
                              (eval1 (lambda (e env)
-                                      (if (fixnum? e)
+                                      (if (number? e)
                                           e
                                           (if (boolean? e)
                                               e

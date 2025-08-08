@@ -18,8 +18,7 @@ Assoc extend(const std::string &x, const Value &v, Assoc &lst){
 
 void modify(const std::string &x, const Value &v, Assoc &lst){
     for (auto i = lst; i.get() != nullptr; i = i->next)
-        if (x == i->x)
-        {
+        if (x == i->x){
             i->v = v;
             return;
         }
@@ -49,6 +48,14 @@ void Void::show(std::ostream &os) {
 
 void Integer::show(std::ostream &os) {
   os << n;
+}
+
+void Rational::show(std::ostream &os) {
+    if (denominator == 1) {
+        os << numerator;
+    } else {
+        os << numerator << "/" << denominator;
+    }
 }
 
 void Boolean::show(std::ostream &os) {
@@ -81,7 +88,7 @@ void Pair::showCdr(std::ostream &os) {
     cdr->showCdr(os);
 }
 
-void Closure::show(std::ostream &os) {
+void Procedure::show(std::ostream &os) {
     os << "#<procedure>";
 }
 
@@ -100,6 +107,39 @@ Value VoidV() {
 Integer::Integer(int n) : ValueBase(V_INT), n(n) {}
 Value IntegerV(int n) {
     return Value(new Integer(n));
+}
+
+// 计算最大公约数
+static int gcd(int a, int b) {
+    if (a < 0) a = -a;
+    if (b < 0) b = -b;
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+Rational::Rational(int num, int den) : ValueBase(V_RATIONAL) {
+    if (den == 0) {
+        throw std::runtime_error("Division by zero");
+    }
+    
+    // 化简分数
+    int g = gcd(num, den);
+    numerator = num / g;
+    denominator = den / g;
+    
+    // 确保分母为正
+    if (denominator < 0) {
+        numerator = -numerator;
+        denominator = -denominator;
+    }
+}
+
+Value RationalV(int num, int den) {
+    return Value(new Rational(num, den));
 }
 
 Boolean::Boolean(bool b) : ValueBase(V_BOOL), b(b) {}
@@ -127,8 +167,8 @@ Value PairV(const Value &car, const Value &cdr) {
     return Value(new Pair(car, cdr));
 }
 
-Closure::Closure(const std::vector<std::string> &xs, const Expr &e, const Assoc &env)
+Procedure::Procedure(const std::vector<std::string> &xs, const Expr &e, const Assoc &env)
     : ValueBase(V_PROC), parameters(xs), e(e), env(env) {}
-Value ClosureV(const std::vector<std::string> &xs, const Expr &e, const Assoc &env) {
-    return Value(new Closure(xs, e, env));
+Value ProcedureV(const std::vector<std::string> &xs, const Expr &e, const Assoc &env) {
+    return Value(new Procedure(xs, e, env));
 }

@@ -19,6 +19,8 @@ Lambda::Lambda(const vector<string> &vec, const Expr &expr) : ExprBase(E_LAMBDA)
 
 Apply::Apply(const Expr &expr, const vector<Expr> &vec) : ExprBase(E_APPLY), rator(expr), rand(vec) {}
 
+Define::Define(const string &variable, const Expr &expr) : ExprBase(E_DEFINE), var(variable), e(expr) {}
+
 Letrec::Letrec(const vector<pair<string, Expr>> &vec, const Expr &expr) : ExprBase(E_LETREC), bind(vec), body(expr) {}
 
 Var::Var(const string &s) : ExprBase(E_VAR), x(s) {}
@@ -33,6 +35,10 @@ False::False() : ExprBase(E_FALSE) {}
 
 Begin::Begin(const vector<Expr> &vec) : ExprBase(E_BEGIN), es(vec) {}
 
+And::And(const vector<Expr> &vec) : ExprBase(E_AND), es(vec) {}
+
+Or::Or(const vector<Expr> &vec) : ExprBase(E_OR), es(vec) {}
+
 Quote::Quote(const Syntax &t) : ExprBase(E_QUOTE), s(t) {}
 
 MakeVoid::MakeVoid() : ExprBase(E_VOID) {}
@@ -43,11 +49,26 @@ Binary::Binary(ExprType et, const Expr &r1, const Expr &r2) : ExprBase(et), rand
 
 Unary::Unary(ExprType et, const Expr &expr) : ExprBase(et), rand(expr) {}
 
+Variadic::Variadic(ExprType et, const std::vector<Expr> &rands) : ExprBase(et), rands(rands) {}
+
 Mult::Mult(const Expr &r1, const Expr &r2) : Binary(E_MUL, r1, r2) {}
 
 Plus::Plus(const Expr &r1, const Expr &r2) : Binary(E_PLUS, r1, r2) {}
 
 Minus::Minus(const Expr &r1, const Expr &r2) : Binary(E_MINUS, r1, r2) {}
+
+Div::Div(const Expr &r1, const Expr &r2) : Binary(E_DIV, r1, r2) {}
+
+// 多参数算术运算符构造函数
+MultVar::MultVar(const std::vector<Expr> &rands) : Variadic(E_MUL, rands) {}
+
+PlusVar::PlusVar(const std::vector<Expr> &rands) : Variadic(E_PLUS, rands) {}
+
+MinusVar::MinusVar(const std::vector<Expr> &rands) : Variadic(E_MINUS, rands) {}
+
+DivVar::DivVar(const std::vector<Expr> &rands) : Variadic(E_DIV, rands) {}
+
+ListFunc::ListFunc(const std::vector<Expr> &rands) : Variadic(E_LIST, rands) {}
 
 Less::Less(const Expr &r1, const Expr &r2) : Binary(E_LT, r1, r2) {}
 
@@ -59,9 +80,25 @@ GreaterEq::GreaterEq(const Expr &r1, const Expr &r2) : Binary(E_GE, r1, r2) {}
 
 Greater::Greater(const Expr &r1, const Expr &r2) : Binary(E_GT, r1, r2) {}
 
+LessVar::LessVar(const std::vector<Expr> &rands) : Variadic(E_LT, rands) {}
+
+LessEqVar::LessEqVar(const std::vector<Expr> &rands) : Variadic(E_LE, rands) {}
+
+EqualVar::EqualVar(const std::vector<Expr> &rands) : Variadic(E_EQ, rands) {}
+
+GreaterEqVar::GreaterEqVar(const std::vector<Expr> &rands) : Variadic(E_GE, rands) {}
+
+GreaterVar::GreaterVar(const std::vector<Expr> &rands) : Variadic(E_GT, rands) {}
+
 IsEq::IsEq(const Expr &r1, const Expr &r2) : Binary(E_EQQ, r1, r2) {}
 
 Cons::Cons(const Expr &r1, const Expr &r2) : Binary(E_CONS, r1, r2) {}
+
+Quotient::Quotient(const Expr &r1, const Expr &r2) : Binary(E_QUOTIENT, r1, r2) {}
+
+Modulo::Modulo(const Expr &r1, const Expr &r2) : Binary(E_MODULO, r1, r2) {}
+
+Expt::Expt(const Expr &r1, const Expr &r2) : Binary(E_EXPT, r1, r2) {}
 
 IsBoolean::IsBoolean(const Expr &r1) : Unary(E_BOOLQ, r1) {}
 
@@ -74,6 +111,8 @@ IsNull::IsNull(const Expr &r1) : Unary(E_NULLQ, r1) {}
 IsPair::IsPair(const Expr &r1) : Unary(E_PAIRQ, r1) {}
 
 IsProcedure::IsProcedure(const Expr &r1) : Unary(E_PROCQ, r1) {}
+
+IsList::IsList(const Expr &r1) : Unary(E_LISTQ, r1) {}
 
 Not::Not(const Expr &r1) : Unary(E_NOT, r1) {}
 

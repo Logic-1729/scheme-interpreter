@@ -1,7 +1,7 @@
 (letrec ((num-list? (lambda (ls)
                       (if (null? ls)
                           #t
-                          (if (fixnum? (car ls))
+                          (if (number? (car ls))
                               (num-list? (cdr ls))
                               #f))))
          (list-product (lambda (ls)

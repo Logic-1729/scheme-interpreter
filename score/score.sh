@@ -10,7 +10,7 @@ do
     echo ""
     echo "---------------------------"
     echo "Ready to test: TEST" $i
-    ../code << EOF > scm.out
+    ../build/code << EOF > scm.out
     $(cat ./data/$i.in)
     (exit)
 EOF
@@ -36,7 +36,7 @@ do
     echo ""
     echo "---------------------------"
     echo "Ready to test: EXTRA TEST" $i
-    ../code << EOF > scm.out
+    ../build/code << EOF > scm.out
     $(cat ./more-tests/$i.in)
     (exit)
 EOF

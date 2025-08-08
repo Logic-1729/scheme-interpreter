@@ -1,1 +1,1 @@
-(letrec () (begin (fixnum? 7) 10))
+(letrec () (begin (number? 7) 10))

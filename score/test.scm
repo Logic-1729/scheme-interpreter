@@ -492,3 +492,5 @@
                       (pretty-print (eval (car test*)) op)))
                   (gen (cdr test*) (add1 ord)))))])
       (gen tests 1))))
+
+(exit)

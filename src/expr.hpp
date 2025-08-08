@@ -44,6 +44,13 @@ struct Apply : ExprBase {
     virtual Value eval(Assoc &) override;
 }; // this is used to handle function calling, where rator is the operator and rands are operands
 
+struct Define : ExprBase {
+    std::string var;
+    Expr e;
+    Define(const std::string &, const Expr &);
+    virtual Value eval(Assoc &) override;
+};
+
 struct Letrec : ExprBase {
     std::vector<std::pair<std::string, Expr>> bind;
     Expr body;
@@ -87,6 +94,18 @@ struct Begin : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
+struct And : ExprBase {
+    std::vector<Expr> es;
+    And(const std::vector<Expr> &);
+    virtual Value eval(Assoc &) override;
+};
+
+struct Or : ExprBase {
+    std::vector<Expr> es;
+    Or(const std::vector<Expr> &);
+    virtual Value eval(Assoc &) override;
+};
+
 struct Quote : ExprBase {
   Syntax s;
   Quote(const Syntax &);
@@ -118,6 +137,13 @@ struct Unary : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
+struct Variadic : ExprBase {
+    std::vector<Expr> rands;
+    Variadic(ExprType, const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) = 0;
+    virtual Value eval(Assoc &) override;
+};
+
 struct Mult : Binary {
     Mult(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
@@ -131,6 +157,37 @@ struct Plus : Binary {
 struct Minus : Binary {
     Minus(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct Div : Binary {
+    Div(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
+// 多参数算术运算符
+struct MultVar : Variadic {
+    MultVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct PlusVar : Variadic {
+    PlusVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct MinusVar : Variadic {
+    MinusVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct DivVar : Variadic {
+    DivVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct ListFunc : Variadic {
+    ListFunc(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
 };
 
 struct Less : Binary {
@@ -158,6 +215,31 @@ struct Greater : Binary {
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
+struct LessVar : Variadic {
+    LessVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct LessEqVar : Variadic {
+    LessEqVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct EqualVar : Variadic {
+    EqualVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct GreaterEqVar : Variadic {
+    GreaterEqVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
+struct GreaterVar : Variadic {
+    GreaterVar(const std::vector<Expr> &);
+    virtual Value evalRator(const std::vector<Value> &) override;
+};
+
 struct IsEq : Binary {
     IsEq(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
@@ -165,6 +247,21 @@ struct IsEq : Binary {
 
 struct Cons : Binary {
     Cons(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct Quotient : Binary {
+    Quotient(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct Modulo : Binary {
+    Modulo(const Expr &, const Expr &);
+    virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct Expt : Binary {
+    Expt(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
 };
 
@@ -195,6 +292,11 @@ struct IsPair : Unary {
 
 struct IsProcedure : Unary {
     IsProcedure(const Expr &);
+    virtual Value evalRator(const Value &) override;
+};
+
+struct IsList : Unary {
+    IsList(const Expr &);
     virtual Value evalRator(const Value &) override;
 };
 
