@@ -1,28 +1,46 @@
 #ifndef EXPRESSION
 #define EXPRESSION
 
+/**
+ * @file expr.hpp
+ * @brief Expression structures for the Scheme interpreter
+ * @author luke36
+ * 
+ * This file defines all expression types used in the Scheme interpreter.
+ * Structures are organized according to ExprType enumeration order from
+ * Def.hpp for consistency and maintainability.
+ */
+
 #include "Def.hpp"
 #include "syntax.hpp"
 #include <memory>
 #include <cstring>
 #include <vector>
 
-struct ExprBase
-{
+struct ExprBase{
     ExprType e_type;
     ExprBase(ExprType);
     virtual Value eval(Assoc &) = 0;
     virtual ~ExprBase() = default;
 };
 
-struct Expr {
+class Expr {
     std::shared_ptr<ExprBase> ptr;
+public:
     Expr(ExprBase *);
     ExprBase* operator->() const;
     ExprBase& operator*();
     ExprBase* get() const;
 };
 
+// ================================================================================
+//                             CONTROL STRUCTURES
+// ================================================================================
+
+/**
+ * @brief Let binding expression
+ * Creates local variable bindings for expression evaluation
+ */
 struct Let : ExprBase {
     std::vector<std::pair<std::string, Expr>> bind;
     Expr body;
@@ -30,6 +48,10 @@ struct Let : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
+/**
+ * @brief Lambda (function) expression
+ * Creates a closure with parameter list and body
+ */
 struct Lambda : ExprBase {
     std::vector<std::string> x;
     Expr e;
@@ -37,20 +59,21 @@ struct Lambda : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
+/**
+ * @brief Function application expression
+ * Handles function calling where rator is operator and rand are operands
+ */
 struct Apply : ExprBase {
     Expr rator;
     std::vector<Expr> rand;
     Apply(const Expr &, const std::vector<Expr> &);
     virtual Value eval(Assoc &) override;
-}; // this is used to handle function calling, where rator is the operator and rands are operands
-
-struct Define : ExprBase {
-    std::string var;
-    Expr e;
-    Define(const std::string &, const Expr &);
-    virtual Value eval(Assoc &) override;
 };
 
+/**
+ * @brief Recursive let binding expression
+ * Supports mutually recursive function definitions
+ */
 struct Letrec : ExprBase {
     std::vector<std::pair<std::string, Expr>> bind;
     Expr body;
@@ -58,18 +81,10 @@ struct Letrec : ExprBase {
     virtual Value eval(Assoc &) override;
 };
 
-struct Var : ExprBase {
-    std::string x;
-    Var(const std::string &);
-    virtual Value eval(Assoc &) override;
-};
-
-struct Fixnum : ExprBase {
-  int n;
-  Fixnum(int);
-  virtual Value eval(Assoc &) override;
-};
-
+/**
+ * @brief Conditional (if) expression
+ * Evaluates condition and chooses between true/false branches
+ */
 struct If : ExprBase {
   Expr cond;
   Expr conseq;
@@ -78,32 +93,124 @@ struct If : ExprBase {
   virtual Value eval(Assoc &) override;
 };
 
-struct True : ExprBase {
-  True();
-  virtual Value eval(Assoc &) override;
+// ================================================================================
+//                        VARIABLE AND DEFINITION MANAGEMENT
+// ================================================================================
+
+/**
+ * @brief Variable/function definition expression  
+ * Defines a new variable or function in the current environment
+ */
+struct Define : ExprBase {
+    std::string var;
+    Expr e;
+    Define(const std::string &, const Expr &);
+    virtual Value eval(Assoc &) override;
 };
 
-struct False : ExprBase {
-  False();
-  virtual Value eval(Assoc &) override;
+/**
+ * @brief Variable assignment expression
+ * Modifies an existing variable's value
+ */
+struct Set : ExprBase {
+    std::string var;
+    Expr e;
+    Set(const std::string &, const Expr &);
+    virtual Value eval(Assoc &) override;
 };
 
+/**
+ * @brief Sequential execution (begin) expression
+ * Evaluates expressions in order and returns the last result
+ */
 struct Begin : ExprBase {
     std::vector<Expr> es;
     Begin(const std::vector<Expr> &);
     virtual Value eval(Assoc &) override;
 };
 
+// ================================================================================
+//                       REMAINING CONTROL STRUCTURES  
+// ================================================================================
+
+/**
+ * @brief Multi-way conditional (cond) expression
+ * Evaluates clauses in order until one matches
+ */
+struct Cond : ExprBase {
+    std::vector<std::vector<Expr>> clauses;
+    Cond(const std::vector<std::vector<Expr>> &);
+    virtual Value eval(Assoc &) override;
+};
+
+/**
+ * @brief Logical AND expression
+ * Short-circuit evaluation of boolean expressions
+ */
 struct And : ExprBase {
     std::vector<Expr> es;
     And(const std::vector<Expr> &);
     virtual Value eval(Assoc &) override;
 };
 
+/**
+ * @brief Logical OR expression  
+ * Short-circuit evaluation of boolean expressions
+ */
 struct Or : ExprBase {
     std::vector<Expr> es;
     Or(const std::vector<Expr> &);
     virtual Value eval(Assoc &) override;
+};
+
+// ================================================================================
+//                              BASIC TYPES AND LITERALS
+// ================================================================================
+
+/**
+ * @brief Variable reference expression
+ * References a variable in the current environment
+ */
+struct Var : ExprBase {
+    std::string x;
+    Var(const std::string &);
+    virtual Value eval(Assoc &) override;
+};
+
+/**
+ * @brief Integer literal expression
+ * Represents fixed-point numbers (integers)
+ */
+struct Fixnum : ExprBase {
+  int n;
+  Fixnum(int);
+  virtual Value eval(Assoc &) override;
+};
+
+/**
+ * @brief String literal expression
+ * Represents string values
+ */
+struct StringExpr : ExprBase {
+  std::string s;
+  StringExpr(const std::string &);
+  virtual Value eval(Assoc &) override;
+};
+
+/**
+ * @brief Boolean true literal
+ */
+struct True : ExprBase {
+  True();
+  virtual Value eval(Assoc &) override;
+};
+
+/**
+ * @brief Boolean false literal  
+ */
+struct False : ExprBase {
+  False();
+  virtual Value eval(Assoc &) override;
 };
 
 struct Quote : ExprBase {
@@ -280,6 +387,11 @@ struct IsSymbol : Unary {
     virtual Value evalRator(const Value &) override;
 };
 
+struct IsString : Unary {
+    IsString(const Expr &);
+    virtual Value evalRator(const Value &) override;
+};
+
 struct IsNull : Unary {
     IsNull(const Expr &);
     virtual Value evalRator(const Value &) override;
@@ -315,13 +427,6 @@ struct Cdr : Unary {
     virtual Value evalRator(const Value &) override;
 };
 
-struct Set : ExprBase {
-    std::string var;
-    Expr e;
-    Set(const std::string &, const Expr &);
-    virtual Value eval(Assoc &) override;
-};
-
 struct SetCar : Binary {
     SetCar(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
@@ -330,6 +435,11 @@ struct SetCar : Binary {
 struct SetCdr : Binary {
     SetCdr(const Expr &, const Expr &);
     virtual Value evalRator(const Value &, const Value &) override;
+};
+
+struct Display : Unary {
+    Display(const Expr &);
+    virtual Value evalRator(const Value &) override;
 };
 
 #endif

@@ -1,0 +1,12 @@
+(let ((x 1) (y x)) (+ x y))
+(letrec ((a 1) (b a)) b)
+(let
+	((fact
+      	(lambda (n)
+          	(if (= n 0)
+				1
+                (* n (fact (- n 1)))))))
+	(fact 5))
+let
+letrec
+(exit)

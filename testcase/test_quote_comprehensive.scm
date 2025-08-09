@@ -1,0 +1,7 @@
+(quote "hello")
+(quote 42)
+(quote #t)
+(quote #f)
+(quote (1 2 "string" #t))
+(quote ())
+(exit)

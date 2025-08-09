@@ -20,9 +20,14 @@ void FalseSyntax::show(std::ostream &os) {
   os << "#f";
 }
 
-Identifier::Identifier(const std::string &s1) : s(s1) {}
-void Identifier::show(std::ostream &os) {
-  os << s;
+SymbolSyntax::SymbolSyntax(const std::string &s1) : s(s1) {}
+void SymbolSyntax::show(std::ostream &os) {
+    os << s;
+}
+
+StringSyntax::StringSyntax(const std::string &s1) : s(s1) {}
+void StringSyntax::show(std::ostream &os) {
+    os << "\"" << s << "\"";
 }
 
 List::List() {}
@@ -57,6 +62,46 @@ std::istream &readSpace(std::istream &is) {
 
 Syntax readList(std::istream &is);
 
+// Helper function to try parsing as integer
+bool tryParseNumber(const std::string &s, int &result) {
+  bool neg = false;
+  int n = 0;
+  int i = 0;
+  
+  // Single '+' or '-' are not numbers
+  if (s.size() == 1 && (s[0] == '+' || s[0] == '-'))
+    return false;
+  
+  // Handle sign
+  if (s[0] == '-') {
+    i += 1;
+    neg = true;
+  } else if (s[0] == '+') {
+    i += 1;
+  }
+  
+  // Check if all remaining characters are digits
+  for (; i < s.size(); i++) {
+    if ('0' <= s[i] && s[i] <= '9') {
+      n = n * 10 + s[i] - '0';
+    } else {
+      return false;  // Not a valid number
+    }
+  }
+  
+  result = neg ? -n : n;
+  return true;
+}
+
+// Helper function to create identifier/symbol syntax
+Syntax createIdentifierSyntax(const std::string &s) {
+  if (s == "#t")
+    return Syntax(new TrueSyntax());
+  if (s == "#f")
+    return Syntax(new FalseSyntax());
+  return Syntax(new SymbolSyntax(s));
+}
+
 // no leading space
 Syntax readItem(std::istream &is) {
   if (is.peek() == '(' || is.peek() == '[') {
@@ -71,11 +116,39 @@ Syntax readItem(std::istream &is) {
     
     // 创建 (quote <syntax>) 的列表结构
     List *quote_list = new List();
-    quote_list->stxs.push_back(Syntax(new Identifier("quote")));
+    quote_list->stxs.push_back(Syntax(new SymbolSyntax("quote")));
     quote_list->stxs.push_back(quoted_syntax);
     
     return Syntax(quote_list);
   }
+  // 处理字符串字面量
+  if (is.peek() == '"') {
+    is.get(); // 消费开始的双引号
+    std::string str;
+    while (is.peek() != '"' && is.peek() != EOF) {
+      char c = is.get();
+      if (c == '\\') {
+        // 处理转义字符
+        char next = is.get();
+        switch (next) {
+          case 'n': str.push_back('\n'); break;
+          case 't': str.push_back('\t'); break;
+          case 'r': str.push_back('\r'); break;
+          case '\\': str.push_back('\\'); break;
+          case '"': str.push_back('"'); break;
+          default: str.push_back(next); break;
+        }
+      } else {
+        str.push_back(c);
+      }
+    }
+    if (is.peek() == '"') {
+      is.get(); // 消费结束的双引号
+    }
+    return Syntax(new StringSyntax(str));
+  }
+  
+  // Read token
   std::string s;
   do {
     int c = is.peek();
@@ -88,32 +161,15 @@ Syntax readItem(std::istream &is) {
     is.get();
     s.push_back(c);
   } while (true);
-  // try parsing a integer
-  bool neg = false;
-  int n = 0;
-  int i = 0;
-  if (s.size() == 1 && (s[0] == '+' || s[0] == '-'))
-    goto identifier;
-  if (s[0] == '-') {
-    i += 1;
-    neg = true;
-  } else if (s[0] == '+')
-    i += 1;
-  for (; i < s.size(); i++)
-    if ('0' <= s[i] && s[i] <= '9')
-      n = n * 10 + s[i] - '0';
-    else
-      goto identifier;
-  if (neg)
-    n = -n;
-  return Syntax(new Number(n));
- identifier:
-  // not a number
-  if (s == "#t")
-    return Syntax(new TrueSyntax());
-  if (s == "#f")
-    return Syntax(new FalseSyntax());
-  return Syntax(new Identifier(s));
+  
+  // Try parsing as integer
+  int number_value;
+  if (tryParseNumber(s, number_value)) {
+    return Syntax(new Number(number_value));
+  }
+  
+  // Not a number, treat as identifier/symbol
+  return createIdentifierSyntax(s);
 }
 
 Syntax readList(std::istream &is) {

@@ -1,5 +1,12 @@
-#ifndef PARSER
-#define PARSER
+/**
+ * @file parser.cpp
+ * @brief Parsing implementation for Scheme syntax tree to expression tree conversion
+ * 
+ * This file implements the parsing logic that converts syntax trees into
+ * expression trees that can be evaluated.
+ * primitive operations, and function applications.
+ */
+
 #include "RE.hpp"
 #include "Def.hpp"
 #include "syntax.hpp"
@@ -8,6 +15,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+
 #define mp make_pair
 using std::string;
 using std::vector;
@@ -16,22 +24,48 @@ using std::pair;
 extern std::map<std::string, ExprType> primitives;
 extern std::map<std::string, ExprType> reserved_words;
 
+// ============================================================================
+// Base Syntax Parsing Methods
+// ============================================================================
+
+/**
+ * @brief Default parse method (should be overridden by subclasses)
+ */
 Expr Syntax::parse(Assoc &env) {
     throw RuntimeError("Unimplemented parse method");
 }
 
+/**
+ * @brief Parse a numeric literal
+ */
 Expr Number::parse(Assoc &env) {
     return Expr(new Fixnum(n));
 }
 
-Expr Identifier::parse(Assoc &env) {
+/**
+ * @brief Parse a symbol (variable reference)
+ */
+Expr SymbolSyntax::parse(Assoc &env) {
     return Expr(new Var(s));
 }
 
+/**
+ * @brief Parse a string literal
+ */
+Expr StringSyntax::parse(Assoc &env) {
+    return Expr(new StringExpr(s));
+}
+
+/**
+ * @brief Parse boolean true literal
+ */
 Expr TrueSyntax::parse(Assoc &env) {
     return Expr(new True());
 }
 
+/**
+ * @brief Parse boolean false literal
+ */
 Expr FalseSyntax::parse(Assoc &env) {
     return Expr(new False());
 }
@@ -42,10 +76,10 @@ Expr List::parse(Assoc &env) {
         return Expr(new Quote(Syntax(new List())));
     }
 
-    // 检查第一个元素是否为 Identifier
-    Identifier *id = dynamic_cast<Identifier*>(stxs[0].get());
+    // 检查第一个元素是否为 SymbolSyntax
+    SymbolSyntax *id = dynamic_cast<SymbolSyntax*>(stxs[0].get());
     if (id == nullptr) {
-        // 如果不是 Identifier，则将其解析为表达式并构造 Apply 表达式
+        // 如果不是 SymbolSyntax，则将其解析为表达式并构造 Apply 表达式
         vector<Expr> parameters;
         for (size_t i = 1; i < stxs.size(); i++) {
             parameters.push_back(stxs[i]->parse(env));
@@ -175,7 +209,7 @@ Expr List::parse(Assoc &env) {
                 	for (int i = 0; i < binder_list_ptr->stxs.size(); i++) {
                      		auto pair_it = dynamic_cast<List*>(binder_list_ptr->stxs[i].get());
                      		if ((pair_it == nullptr)||(pair_it->stxs.size() != 2)) {throw RuntimeError("Invalid let binding list");}
-                     		auto Identifiers = dynamic_cast<Identifier*>(pair_it->stxs.front().get());
+                     		auto Identifiers = dynamic_cast<SymbolSyntax*>(pair_it->stxs.front().get());
                      		if (Identifiers == nullptr) {throw RuntimeError("Invalid input of identifier");}
                       		Expr temp_expr = pair_it->stxs.back().get()->parse(env);
                       		local_env = extend(Identifiers->s, NullV(), local_env);
@@ -206,9 +240,25 @@ Expr List::parse(Assoc &env) {
     			}
              		return Expr(new Or(passed_exprs));
         	}
+        	case E_COND:{
+             		if (stxs.size() < 2) throw RuntimeError("wrong parameter number for cond");
+             		vector<vector<Expr>> clauses;
+             		for (size_t i = 1; i < stxs.size(); i++) {
+                 		List* clause_list = dynamic_cast<List*>(stxs[i].get());
+                 		if (clause_list == nullptr || clause_list->stxs.empty()) {
+                     			throw RuntimeError("Invalid cond clause");
+                 		}
+                 		vector<Expr> clause_exprs;
+                 		for (auto& clause_stx : clause_list->stxs) {
+                     			clause_exprs.push_back(clause_stx->parse(env));
+                 		}
+                 		clauses.push_back(clause_exprs);
+             		}
+             		return Expr(new Cond(clauses));
+        	}
         	case E_QUOTE:{if (stxs.size() != 2) throw RuntimeError("wrong parameter number for quote");return Expr(new Quote(stxs[1]));}
         	case E_LAMBDA:{
-            		if (stxs.size() != 3) throw RuntimeError("wrong parameter number for lambda");
+            		if (stxs.size() < 3) throw RuntimeError("wrong parameter number for lambda");
             		Assoc New_env = env;
                 	std::vector<std::string> vars;
                 	List* paras_ptr = dynamic_cast<List*>(stxs[1].get());
@@ -221,7 +271,19 @@ Expr List::parse(Assoc &env) {
                          		throw RuntimeError("Invalid input of variable");
                      		}	
                 	}
-                	return Expr(new Lambda(vars, stxs[2].get()->parse(New_env)));break;
+                	
+                	// 处理多个body表达式
+                	if (stxs.size() == 3) {
+                		// 单个body表达式
+                		return Expr(new Lambda(vars, stxs[2].get()->parse(New_env)));
+                	} else {
+                		// 多个body表达式，包装在Begin中
+                		vector<Expr> body_exprs;
+                		for (size_t i = 2; i < stxs.size(); i++) {
+                			body_exprs.push_back(stxs[i]->parse(New_env));
+                		}
+                		return Expr(new Lambda(vars, Expr(new Begin(body_exprs))));
+                	}
         	}
         	case E_LETREC:{
     			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for letrec");
@@ -237,7 +299,7 @@ Expr List::parse(Assoc &env) {
         			List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
         			if (stx_tobind == nullptr || stx_tobind->stxs.size() != 2) {throw RuntimeError("Invalid letrec binding");}
 
-        			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
+        			SymbolSyntax *temp_id = dynamic_cast<SymbolSyntax*>(stx_tobind->stxs[0].get());
         			if (temp_id == nullptr) {throw RuntimeError("Invalid letrec binding variable");}
 				
         			// 在临时环境中绑定变量，初始值为 null
@@ -247,29 +309,29 @@ Expr List::parse(Assoc &env) {
     			// 第二次遍历：使用包含所有变量的环境解析表达式
     			for (auto &stx_tobind_raw : binder_list_ptr->stxs) {
         			List *stx_tobind = dynamic_cast<List*>(stx_tobind_raw.get());
-        			Identifier *temp_id = dynamic_cast<Identifier*>(stx_tobind->stxs[0].get());
+        			SymbolSyntax *temp_id = dynamic_cast<SymbolSyntax*>(stx_tobind->stxs[0].get());
 
         			// 在包含所有变量的环境中解析表达式
         			Expr temp_store = stx_tobind->stxs[1]->parse(temp_env);
-        			binded_vector.push_back(mp(temp_id->s, temp_store));
+        			binded_vector.push_back(std::make_pair(temp_id->s, temp_store));
     			}
 
     			// 使用同样的环境解析 body
     			return Expr(new Letrec(binded_vector, stxs[2]->parse(temp_env)));
 		}
 		case E_DEFINE:{
-			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for define");
+			if (stxs.size() < 3) throw RuntimeError("wrong parameter number for define");
 			
 			// 检查第二个元素是否为List（函数定义语法糖）
 			List *func_def_list = dynamic_cast<List*>(stxs[1].get());
 			if (func_def_list != nullptr) {
-				// 语法糖: (define (func-name param1 param2 ...) body)
+				// 语法糖: (define (func-name param1 param2 ...) body...)
 				if (func_def_list->stxs.empty()) {
 					throw RuntimeError("Invalid function definition: empty parameter list");
 				}
 				
 				// 第一个元素应该是函数名
-				Identifier *func_name = dynamic_cast<Identifier*>(func_def_list->stxs[0].get());
+				SymbolSyntax *func_name = dynamic_cast<SymbolSyntax*>(func_def_list->stxs[0].get());
 				if (func_name == nullptr) {
 					throw RuntimeError("Invalid function name in define");
 				}
@@ -277,26 +339,38 @@ Expr List::parse(Assoc &env) {
 				// 提取参数列表
 				vector<string> param_names;
 				for (size_t i = 1; i < func_def_list->stxs.size(); i++) {
-					Identifier *param = dynamic_cast<Identifier*>(func_def_list->stxs[i].get());
+					SymbolSyntax *param = dynamic_cast<SymbolSyntax*>(func_def_list->stxs[i].get());
 					if (param == nullptr) {
 						throw RuntimeError("Invalid parameter in function definition");
 					}
 					param_names.push_back(param->s);
 				}
 				
-				// 创建lambda表达式
-				Expr lambda_expr = Expr(new Lambda(param_names, stxs[2]->parse(env)));
-				return Expr(new Define(func_name->s, lambda_expr));
+				// 创建lambda表达式，支持多个body表达式
+				if (stxs.size() == 3) {
+					// 单个body表达式
+					Expr lambda_expr = Expr(new Lambda(param_names, stxs[2]->parse(env)));
+					return Expr(new Define(func_name->s, lambda_expr));
+				} else {
+					// 多个body表达式，包装在Begin中
+					vector<Expr> body_exprs;
+					for (size_t i = 2; i < stxs.size(); i++) {
+						body_exprs.push_back(stxs[i]->parse(env));
+					}
+					Expr lambda_expr = Expr(new Lambda(param_names, Expr(new Begin(body_exprs))));
+					return Expr(new Define(func_name->s, lambda_expr));
+				}
 			} else {
 				// 原有语法: (define var-name expression)
-				Identifier *var_id = dynamic_cast<Identifier*>(stxs[1].get());
+				if (stxs.size() != 3) throw RuntimeError("wrong parameter number for simple define");
+				SymbolSyntax *var_id = dynamic_cast<SymbolSyntax*>(stxs[1].get());
 				if (var_id == nullptr) {throw RuntimeError("Invalid define variable");}
 				return Expr(new Define(var_id->s, stxs[2]->parse(env)));
 			}
 		}
 		case E_SET:{
 			if (stxs.size() != 3) throw RuntimeError("wrong parameter number for set!");
-			Identifier *var_id = dynamic_cast<Identifier*>(stxs[1].get());
+			SymbolSyntax *var_id = dynamic_cast<SymbolSyntax*>(stxs[1].get());
 			if (var_id == nullptr) {throw RuntimeError("Invalid set! variable");}
 			return Expr(new Set(var_id->s, stxs[2]->parse(env)));
 		}
@@ -314,5 +388,3 @@ Expr List::parse(Assoc &env) {
     return Expr(new Apply(opexpr, to_expr));
     }
 }
-
-#endif

@@ -29,7 +29,7 @@ struct Number : SyntaxBase {
 };
 
 struct TrueSyntax : SyntaxBase {
-    // TrueSyntax();
+    // This will not match
     virtual Expr parse(Assoc &) override;
     virtual void show(std::ostream &) override;
 };
@@ -40,9 +40,16 @@ struct FalseSyntax : SyntaxBase {
     virtual void show(std::ostream &) override;
 };
 
-struct Identifier : SyntaxBase {
+struct SymbolSyntax : SyntaxBase {
     std::string s;
-    Identifier(const std::string &);
+    SymbolSyntax(const std::string &);
+    virtual Expr parse(Assoc &) override;
+    virtual void show(std::ostream &) override;
+};
+
+struct StringSyntax : SyntaxBase {
+    std::string s;
+    StringSyntax(const std::string &);
     virtual Expr parse(Assoc &) override;
     virtual void show(std::ostream &) override;
 };

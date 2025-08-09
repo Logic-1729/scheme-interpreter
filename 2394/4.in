@@ -1,0 +1,36 @@
+(((lambda (+) +) *) 2 3)
++
+-
+*
+<
+<=
+=
+>=
+>
+void
+exit
+cons
+car
+cdr
+not
+number?
+boolean?
+pair?
+symbol?
+procedure?
+eq?
+((if #t + -) 1 2)
+(lambda (x y) (+ x y))
+(lambda () (void))
+(lambda (void) undefined)
+((lambda (x y) (* x y)) 10 11)
+(((if #t (lambda () +) (lambda () -))) 1 2)
+((lambda (x y) (lambda (x y) (+ x y))) 1 2)
+(((lambda (x y) (lambda (x y) (+ x y))) 1 2) 3 4)
+((lambda (x1 x2 x3 x4 x5) (* x5 ((lambda (x1 x2 x3 x4) (* x4 ((lambda (x1 x2 x3) (* x3 ((lambda (x1 x2) (* x1 x2)) x1 x2))) x1 x2 x3))) x1 x2 x3 x4))) 1 2 3 4 5)
+(car (cons (lambda () +) 1)) 
+(((car (cons (lambda () +) 1))) 1 2)
+((lambda (if) (if #f (quote true) (quote false))) (lambda (cond expr alter) cond))
+((lambda (begin) (begin (quote first) (quote second))) (lambda (first second) first))
+((lambda (quote) (quote #t)) (lambda (boolean) (not boolean)))
+(exit)

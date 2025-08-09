@@ -1,0 +1,8 @@
+(string? "hello")
+(string? 42)
+(string? #t)
+(string? '())
+(string? (cons 1 2))
+(string? "")
+(string? 'symbol)
+(exit)

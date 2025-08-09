@@ -18,7 +18,7 @@ update time:2024-12-16 22:01:13
     if (dynamic_cast<TrueSyntax*>(s.get())) return BooleanV(true);
     else if (dynamic_cast<FalseSyntax*>(s.get())) return BooleanV(false);
     else if (dynamic_cast<Number*>(s.get())) return IntegerV(dynamic_cast<Number*>(s.get())->n);
-    else if (dynamic_cast<Identifier*>(s.get())) return SymbolV(dynamic_cast<Identifier*>(s.get())->s);
+    else if (dynamic_cast<SymbolSyntax*>(s.get())) return SymbolV(dynamic_cast<SymbolSyntax*>(s.get())->s);
     else if (dynamic_cast<List*>(s.get())) {
         std::vector<Syntax> stxs_got = dynamic_cast<List*>(s.get())->stxs;
         if (stxs_got.size() == 0) return NullV();

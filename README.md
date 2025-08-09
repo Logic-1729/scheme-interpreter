@@ -304,7 +304,7 @@ scm> #f
 
 对于 `Pair` 的情况，由于 Scheme 对一个列表求值时会将其视为调用函数（例如 `(+ 1 2)` 的值是 `3` 而非列表 `(+ 1 2)` 自身），所以我们可以通过 `(quote datum)` 直接构造一个 `Pair`（包括列表）。
 
-对于 `Symbol` 的情况，由于 Scheme 对一个 `Identifier` 求值时会被认为取变量名为该 `Identifier` 对应的值（例如 `var` 的值是 `var` 变量对应的值而非 `var` 自身），所以我们可以通过 `(quote datum)` 直接构造一个 `Symbol`。
+对于 `Symbol` 的情况，由于 Scheme 对一个 `SymbolSyntax` 求值时会被认为取变量名为该 `SymbolSyntax` 对应的值（例如 `var` 的值是 `var` 变量对应的值而非 `var` 自身），所以我们可以通过 `(quote datum)` 直接构造一个 `Symbol`。
 
 `(quote datum)` 的值是 `Integer`、`Boolean`、`Symbol`、`Pair` 中的一种，取决于 `datum` 的形式。
 
@@ -532,7 +532,7 @@ expr   -->  Integer
 
 `var` 即变量，它的值可以是任意类型，取决于当前作用域中它对应的值。
 
-任何 `Identifier` 都可以被解释成 `var`，包括 `primitives` 与 `reserve_words` 中的字符串，例如 `+` 与 `quote` 也可以是变量名。
+任何 `SymbolSyntax` 都可以被解释成 `var`，包括 `primitives` 与 `reserve_words` 中的字符串，例如 `+` 与 `quote` 也可以是变量名。
 
 变量名可以包含大小写字母（Scheme 对大小写敏感）、数字以及 `?!.+-*/<=>:$%&_~@` 中的字符。**在本次大作业中，我们规定：**
 

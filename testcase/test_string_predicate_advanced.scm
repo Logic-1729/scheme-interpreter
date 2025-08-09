@@ -1,0 +1,5 @@
+(define x "test string")
+(string? x)
+(if (string? "hello") "is string" "not string")
+(if (string? 42) "is string" "not string")
+(exit)

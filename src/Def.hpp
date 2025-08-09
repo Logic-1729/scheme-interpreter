@@ -1,7 +1,14 @@
 #ifndef DEF_HPP
 #define DEF_HPP
 
-// By luke36
+/**
+ * @file Def.hpp
+ * @brief Core definitions and enumerations for the Scheme interpreter
+ * @author luke36
+ * 
+ * This file contains essential type definitions, enumerations, and forward
+ * declarations used throughout the Scheme interpreter implementation.
+ */
 
 #include <string>
 #include <utility>
@@ -9,26 +16,102 @@
 #include <iostream>
 #include <map>
 
+// Forward declarations
 struct Syntax;
 struct Expr;
 struct Value;
 struct AssocList;
 struct Assoc;
 
-enum ExprType{
-    E_LET, E_LAMBDA, E_APPLY, E_LETREC, E_VAR, E_FIXNUM,
-    E_IF, E_TRUE, E_FALSE, E_BEGIN, E_QUOTE, E_VOID,
-    E_MUL, E_PLUS, E_MINUS, E_DIV, E_LT, E_LE, E_EQ, E_GE, E_GT,
-    E_CONS, E_NOT, E_CAR, E_CDR, E_LIST,
-    E_EQQ, E_BOOLQ, E_INTQ, E_NULLQ, E_PAIRQ, E_PROCQ, E_SYMBOLQ, E_LISTQ, E_NUMBERQ,
-    E_QUOTIENT, E_MODULO, E_EXPT, E_AND, E_OR,
-    E_DEFINE, E_SET, E_SETCAR, E_SETCDR,
-    E_EXIT
-};
-enum ValueType{
-    V_INT, V_RATIONAL, V_BOOL, V_SYM, V_NULL, V_STRING,
-    V_PAIR, V_PROC, V_VOID, V_PRIMITIVE,
-    V_TERMINATE
+/**
+ * @brief Expression types enumeration
+ * 
+ * Defines all possible expression types that can be parsed and evaluated
+ * in the Scheme interpreter.
+ */
+enum ExprType {
+    // Control structures
+    E_LET,              ///< Let binding expression
+    E_LAMBDA,           ///< Lambda (function) expression
+    E_APPLY,            ///< Function application
+    E_LETREC,           ///< Recursive let binding
+    E_IF,               ///< Conditional expression
+    E_BEGIN,            ///< Sequential execution
+    E_COND,             ///< Multi-way conditional
+    E_AND,              ///< Logical AND
+    E_OR,               ///< Logical OR
+    
+    // Basic types and literals
+    E_VAR,              ///< Variable reference
+    E_FIXNUM,           ///< Integer literal
+    E_STRING,           ///< String literal
+    E_TRUE,             ///< Boolean true literal
+    E_FALSE,            ///< Boolean false literal
+    E_QUOTE,            ///< Quote expression
+    E_VOID,             ///< Void value
+    
+    // Arithmetic operations
+    E_PLUS,             ///< Addition
+    E_MINUS,            ///< Subtraction
+    E_MUL,              ///< Multiplication
+    E_DIV,              ///< Division
+    E_QUOTIENT,         ///< Integer division
+    E_MODULO,           ///< Modulo operation
+    E_EXPT,             ///< Exponentiation
+    
+    // Comparison operations
+    E_LT,               ///< Less than
+    E_LE,               ///< Less than or equal
+    E_EQ,               ///< Equal
+    E_GE,               ///< Greater than or equal
+    E_GT,               ///< Greater than
+    
+    // List operations
+    E_CONS,             ///< Cons (pair construction)
+    E_CAR,              ///< Get first element of pair
+    E_CDR,              ///< Get second element of pair
+    E_LIST,             ///< Create list
+    E_SETCAR,           ///< Set first element of pair
+    E_SETCDR,           ///< Set second element of pair
+    
+    // Type predicates
+    E_EQQ,              ///< eq? predicate
+    E_BOOLQ,            ///< boolean? predicate
+    E_INTQ,             ///< integer? predicate (also number?)
+    E_NULLQ,            ///< null? predicate
+    E_PAIRQ,            ///< pair? predicate
+    E_PROCQ,            ///< procedure? predicate
+    E_SYMBOLQ,          ///< symbol? predicate
+    E_LISTQ,            ///< list? predicate
+    E_NUMBERQ,          ///< number? predicate
+    E_STRINGQ,          ///< string? predicate
+    
+    // Other operations
+    E_NOT,              ///< Logical NOT
+    E_DEFINE,           ///< Variable/function definition
+    E_SET,              ///< Variable assignment
+    E_DISPLAY,          ///< Display output
+    E_EXIT              ///< Exit interpreter
 };
 
-#endif
+/**
+ * @brief Value types enumeration
+ * 
+ * Defines all possible value types that can be represented and manipulated
+ * in the Scheme interpreter runtime.
+ */
+enum ValueType {
+    V_INT,              ///< Integer value
+    V_RATIONAL,         ///< Rational number (currently unused)
+    V_BOOL,             ///< Boolean value
+    V_SYM,              ///< Symbol value
+    V_NULL,             ///< Null/empty list
+    V_STRING,           ///< String value
+    V_PAIR,             ///< Pair/cons cell
+    V_PROC,             ///< Procedure/function
+    V_VOID,             ///< Void value
+    V_PRIMITIVE,        ///< Built-in primitive function
+    V_TERMINATE         ///< Termination signal
+};
+
+#endif // DEF_HPP

@@ -1,5 +1,15 @@
+/**
+ * @file evaluation.cpp
+ * @brief Expression evaluation implementation for the Scheme interpreter
+ * @author luke36
+ * 
+ * This file implements evaluation methods for all expression types in the Scheme
+ * interpreter. Functions are organized according to ExprType enumeration order
+ * from Def.hpp for consistency and maintainability.
+ */
+
 #include "value.hpp"
-#include "expr.hpp"
+#include "expr.hpp" 
 #include "RE.hpp"
 #include "syntax.hpp"
 #include <cstring>
@@ -10,6 +20,14 @@
 extern std::map<std::string, ExprType> primitives;
 extern std::map<std::string, ExprType> reserved_words;
 
+// ================================================================================
+//                             CONTROL STRUCTURES
+// ================================================================================
+
+/**
+ * @brief Evaluate Let expression
+ * Creates new environment bindings and evaluates body in that context
+ */
 Value Let::eval(Assoc &env) {
     Assoc cur_env = env;
     std::vector<std::pair<std::string, Value>> tobind;
@@ -22,17 +40,33 @@ Value Let::eval(Assoc &env) {
     return body->eval(cur_env);
 }
 
+/**
+ * @brief Evaluate Set! expression  
+ * Modifies the value of an existing variable
+ */
+
+/**
+ * @brief Evaluate Lambda expression
+ * Creates a closure capturing the current environment
+ */
 Value Lambda::eval(Assoc &env) { // lambda expression
     Assoc new_env = env;
     return ProcedureV(x, e, new_env);
 }
+
+/**
+ * @brief Evaluate Apply expression
+ * Evaluates function and arguments, then executes function body in extended environment
+ */
 
 Value Apply::eval(Assoc &e) {
     Value mid_fun = rator->eval(e);
     if (mid_fun->v_type != V_PROC) {throw RuntimeError("Attempt to apply a non-procedure");}
 
     Procedure* clos_ptr = dynamic_cast<Procedure*>(mid_fun.get());
-    Assoc cur_env = clos_ptr->env;
+    
+    // 直接使用闭包的环境，然后为参数添加绑定
+    // 关键修改：确保我们修改的是真正的闭包环境
     std::vector<Value> args;
 
     for (int i = 0; i < rand.size(); i++) {
@@ -41,13 +75,23 @@ Value Apply::eval(Assoc &e) {
 
     if (args.size() != clos_ptr->parameters.size()) {throw RuntimeError("Wrong number of arguments");}
 
+    // 在闭包环境基础上添加参数绑定
+    Assoc param_env = clos_ptr->env;
     for (int i = 0; i < clos_ptr->parameters.size(); i++) {
-        cur_env = extend(clos_ptr->parameters[i], args[i], cur_env);
+        param_env = extend(clos_ptr->parameters[i], args[i], param_env);
     }
 
-    return clos_ptr->e->eval(cur_env);
+    // 执行函数体
+    return clos_ptr->e->eval(param_env);
 }
 
+// ================================================================================
+//                           VARIABLE AND DEFINITION MANAGEMENT  
+// ================================================================================
+
+/**
+ * @brief Evaluate Define expression - Delayed evaluation version supporting mutual recursion
+ */
 Value Define::eval(Assoc &env) {
     // 检查是否试图重新定义primitive函数
     if (primitives.count(var) || reserved_words.count(var)) {
@@ -65,6 +109,29 @@ Value Define::eval(Assoc &env) {
     
     // define 返回 void
     return VoidV();
+}
+
+/**
+ * @brief Evaluate Letrec expression - Batch processing of multiple define statements supporting mutual recursion
+ */
+Value evaluateDefineGroup(const std::vector<std::pair<std::string, Expr>>& defines, Assoc &env) {
+    // 第一阶段：为所有变量创建占位符绑定
+    for (const auto& def : defines) {
+        if (primitives.count(def.first) || reserved_words.count(def.first)) {
+            throw RuntimeError("Cannot redefine primitive: " + def.first);
+        }
+        env = extend(def.first, Value(nullptr), env);
+    }
+    
+    // 第二阶段：求值所有表达式并更新绑定
+    Value last_result = VoidV();
+    for (const auto& def : defines) {
+        Value val = def.second->eval(env);
+        modify(def.first, val, env);
+        last_result = VoidV(); // define 总是返回 void
+    }
+    
+    return last_result;
 }
 
 Value Letrec::eval(Assoc &env) {
@@ -99,7 +166,7 @@ Value Set::eval(Assoc &env) {
     // 检查变量是否存在
     Value var_value = find(var, env);
     if (var_value.get() == nullptr) {
-        throw RuntimeError("Undefined variable: " + var);
+        throw RuntimeError("Undefined variable in set!: " + var);
     }
     
     // 计算新值
@@ -112,6 +179,14 @@ Value Set::eval(Assoc &env) {
     return VoidV();
 }
 
+// ================================================================================
+// 基本类型和字面量
+// ================================================================================
+
+/**
+ * 变量求值
+ * 在环境中查找变量的值
+ */
 Value Var::eval(Assoc &e) { // evaluation of variable
     if ((x.empty()) || (std::isdigit(x[0]) || x[0] == '.' || x[0] == '@')) 
         throw RuntimeError("Wrong variable name");
@@ -145,6 +220,7 @@ Value Var::eval(Assoc &e) { // evaluation of variable
                 case E_PROCQ: { exp = (new IsProcedure(new Var("parm"))); break; }
                 case E_LISTQ: { exp = (new IsList(new Var("parm"))); break; }
                 case E_SYMBOLQ: { exp = (new IsSymbol(new Var("parm"))); break; }
+                case E_STRINGQ: { exp = (new IsString(new Var("parm"))); break; }
                 case E_CONS: { exp = (new Cons(new Var("parm1"), new Var("parm2"))); break; }
                 case E_QUOTIENT: { exp = (new Quotient(new Var("parm1"), new Var("parm2"))); break; }
                 case E_MODULO: { exp = (new Modulo(new Var("parm1"), new Var("parm2"))); break; }
@@ -154,6 +230,7 @@ Value Var::eval(Assoc &e) { // evaluation of variable
                 case E_CDR: { exp = (new Cdr(new Var("parm"))); break; }
                 case E_SETCAR: { exp = (new SetCar(new Var("parm1"), new Var("parm2"))); break; }
                 case E_SETCDR: { exp = (new SetCdr(new Var("parm1"), new Var("parm2"))); break; }
+                case E_DISPLAY: { exp = (new Display(new Var("parm"))); break; }
                 case E_EXIT: { exp = (new Exit()); break; }
             }
             std::vector<std::string> parameters_;
@@ -173,6 +250,10 @@ Value Var::eval(Assoc &e) { // evaluation of variable
 
 Value Fixnum::eval(Assoc &e) { // evaluation of a fixnum
     return IntegerV(n);
+}
+
+Value StringExpr::eval(Assoc &e) { // evaluation of a string
+    return StringV(s);
 }
 
 Value If::eval(Assoc &e) {
@@ -198,6 +279,51 @@ Value False::eval(Assoc &e) { // evaluation of #f
 
 Value Begin::eval(Assoc &e) {
     if (es.size() == 0) return VoidV();
+    
+    // 查找连续的内部定义
+    std::vector<std::pair<std::string, Expr>> internal_defs;
+    int first_non_define = 0;
+    
+    for (int i = 0; i < es.size(); i++) {
+        if (es[i]->e_type == E_DEFINE) {
+            Define* def = dynamic_cast<Define*>(es[i].get());
+            if (def) {
+                internal_defs.push_back({def->var, def->e});
+                first_non_define = i + 1;
+            } else {
+                break; // 不是连续的定义了
+            }
+        } else {
+            break; // 不是连续的定义了
+        }
+    }
+    
+    // 如果有内部定义，使用类似 letrec 的语义
+    if (!internal_defs.empty()) {
+        // 创建新环境，先绑定所有变量为 nullptr
+        Assoc new_env = e;
+        for (const auto &def : internal_defs) {
+            new_env = extend(def.first, Value(nullptr), new_env);
+        }
+        
+        // 在新环境中求值所有定义的表达式
+        for (const auto &def : internal_defs) {
+            Value val = def.second->eval(new_env);
+            modify(def.first, val, new_env);
+        }
+        
+        // 在新环境中执行剩余的表达式
+        if (first_non_define >= es.size()) {
+            return VoidV(); // 只有定义，没有其他表达式
+        }
+        
+        for (int i = first_non_define; i < es.size() - 1; i++) {
+            es[i]->eval(new_env);
+        }
+        return es[es.size() - 1]->eval(new_env);
+    }
+    
+    // 没有内部定义，使用原来的逻辑
     for (int i = 0; i < es.size() - 1; i++) {
         es[i]->eval(e);
     }
@@ -252,6 +378,54 @@ Value Or::eval(Assoc &e) {
     return BooleanV(false); // 不应该到达这里
 }
 
+Value Cond::eval(Assoc &env) {
+    // cond 表达式求值
+    for (const auto &clause : clauses) {
+        if (clause.empty()) continue;
+        
+        // 检查是否为 else 分支
+        if (clause[0]->e_type == E_VAR) {
+            Var* var_expr = dynamic_cast<Var*>(clause[0].get());
+            if (var_expr && var_expr->x == "else") {
+                // else 分支：求值所有表达式，返回最后一个
+                if (clause.size() == 1) {
+                    return VoidV();  // 如果 else 分支没有表达式，返回 void
+                }
+                Value result = VoidV();  // 初始化为 void
+                for (size_t i = 1; i < clause.size(); i++) {
+                    result = clause[i]->eval(env);
+                }
+                return result;
+            }
+        }
+        
+        // 普通分支：先求值谓词
+        Value pred_value = clause[0]->eval(env);
+        
+        // 在 Scheme 中，只有 #f 是假值
+        bool is_true = true;
+        if (pred_value->v_type == V_BOOL) {
+            Boolean* b = dynamic_cast<Boolean*>(pred_value.get());
+            is_true = b->b;
+        }
+        
+        if (is_true) {
+            // 谓词为真，求值该分支的所有表达式，返回最后一个
+            if (clause.size() == 1) {
+                return pred_value;  // 如果只有谓词，返回谓词的值
+            }
+            Value result = VoidV();  // 初始化为 void
+            for (size_t i = 1; i < clause.size(); i++) {
+                result = clause[i]->eval(env);
+            }
+            return result;
+        }
+    }
+    
+    // 没有分支匹配，返回 void
+    return VoidV();
+}
+
 Value Quote::eval(Assoc& e) {
     if (dynamic_cast<TrueSyntax*>(s.get())) 
         return BooleanV(true);
@@ -259,8 +433,10 @@ Value Quote::eval(Assoc& e) {
         return BooleanV(false);
     else if (dynamic_cast<Number*>(s.get()))  // 修正：使用Number而不是Integer
         return IntegerV(dynamic_cast<Number*>(s.get())->n);
-    else if (dynamic_cast<Identifier*>(s.get())) 
-        return SymbolV(dynamic_cast<Identifier*>(s.get())->s);
+    else if (dynamic_cast<SymbolSyntax*>(s.get())) 
+        return SymbolV(dynamic_cast<SymbolSyntax*>(s.get())->s);
+    else if (dynamic_cast<StringSyntax*>(s.get())) 
+        return StringV(dynamic_cast<StringSyntax*>(s.get())->s);
     else if (dynamic_cast<List*>(s.get())) {
         auto stxs_got = dynamic_cast<List*>(s.get())->stxs; 
         List* temp = new List;
@@ -271,14 +447,14 @@ Value Quote::eval(Assoc& e) {
         } else {
             int pos = -1, cnt = 0, len = stxs_got.size();
             for (int i = 0; i < len; i++) {
-                pos = (((dynamic_cast<Identifier*>(stxs_got[i].get())) && (dynamic_cast<Identifier*>(stxs_got[i].get())->s == ".")) ? (i) : (pos));
-                cnt = (((dynamic_cast<Identifier*>(stxs_got[i].get())) && (dynamic_cast<Identifier*>(stxs_got[i].get())->s == ".")) ? (cnt + 1) : (cnt));
+                pos = (((dynamic_cast<SymbolSyntax*>(stxs_got[i].get())) && (dynamic_cast<SymbolSyntax*>(stxs_got[i].get())->s == ".")) ? (i) : (pos));
+                cnt = (((dynamic_cast<SymbolSyntax*>(stxs_got[i].get())) && (dynamic_cast<SymbolSyntax*>(stxs_got[i].get())->s == ".")) ? (cnt + 1) : (cnt));
             }
             if ((cnt > 1 || ((pos != len - 2) && (cnt))) || (cnt == 1 && (len < 3))) {
                 throw RuntimeError("Parm isn't fit");
             }
             if (len == 3) {
-                if ((dynamic_cast<Identifier*>(stxs_got[1].get())) && (dynamic_cast<Identifier*>(stxs_got[1].get())->s == ".")) {
+                if ((dynamic_cast<SymbolSyntax*>(stxs_got[1].get())) && (dynamic_cast<SymbolSyntax*>(stxs_got[1].get())->s == ".")) {
                     return PairV(Quote(stxs_got[0]).eval(e), Quote(stxs_got[2]).eval(e));
                 }
             }
@@ -630,6 +806,10 @@ Value IsSymbol::evalRator(const Value &rand) { // symbol?
     return BooleanV(rand->v_type == V_SYM);
 }
 
+Value IsString::evalRator(const Value &rand) { // string?
+    return BooleanV(rand->v_type == V_STRING);
+}
+
 Value IsNull::evalRator(const Value &rand) { // null?
     return BooleanV(rand->v_type == V_NULL);
 }
@@ -882,4 +1062,18 @@ Value ListFunc::evalRator(const std::vector<Value> &args) { // list function
     }
     
     return result;
+}
+
+Value Display::evalRator(const Value &rand) { // display function
+    // display 输出值但不换行，字符串不显示引号
+    if (rand->v_type == V_STRING) {
+        // 对于字符串，输出内容但不包括引号
+        String* str_ptr = dynamic_cast<String*>(rand.get());
+        std::cout << str_ptr->s;
+    } else {
+        // 对于其他类型，使用标准显示方法
+        rand->show(std::cout);
+    }
+    
+    return VoidV();
 }

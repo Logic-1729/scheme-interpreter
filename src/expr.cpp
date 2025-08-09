@@ -27,6 +27,8 @@ Var::Var(const string &s) : ExprBase(E_VAR), x(s) {}
 
 Fixnum::Fixnum(int x) : ExprBase(E_FIXNUM), n(x) {}
 
+StringExpr::StringExpr(const std::string &str) : ExprBase(E_STRING), s(str) {}
+
 If::If(const Expr &c, const Expr &c_t, const Expr &c_e) : ExprBase(E_IF), cond(c), conseq(c_t), alter(c_e) {}
 
 True::True() : ExprBase(E_TRUE) {}
@@ -38,6 +40,8 @@ Begin::Begin(const vector<Expr> &vec) : ExprBase(E_BEGIN), es(vec) {}
 And::And(const vector<Expr> &vec) : ExprBase(E_AND), es(vec) {}
 
 Or::Or(const vector<Expr> &vec) : ExprBase(E_OR), es(vec) {}
+
+Cond::Cond(const std::vector<std::vector<Expr>> &cls) : ExprBase(E_COND), clauses(cls) {}
 
 Quote::Quote(const Syntax &t) : ExprBase(E_QUOTE), s(t) {}
 
@@ -106,6 +110,8 @@ IsFixnum::IsFixnum(const Expr &r1) : Unary(E_INTQ, r1) {}
 
 IsSymbol::IsSymbol(const Expr &r1) : Unary(E_SYMBOLQ, r1) {}
 
+IsString::IsString(const Expr &r1) : Unary(E_STRINGQ, r1) {}
+
 IsNull::IsNull(const Expr &r1) : Unary(E_NULLQ, r1) {}
 
 IsPair::IsPair(const Expr &r1) : Unary(E_PAIRQ, r1) {}
@@ -125,3 +131,5 @@ Set::Set(const std::string &var, const Expr &e) : ExprBase(E_SET), var(var), e(e
 SetCar::SetCar(const Expr &r1, const Expr &r2) : Binary(E_SETCAR, r1, r2) {}
 
 SetCdr::SetCdr(const Expr &r1, const Expr &r2) : Binary(E_SETCDR, r1, r2) {}
+
+Display::Display(const Expr &r) : Unary(E_DISPLAY, r) {}

@@ -1,0 +1,189 @@
+{
+  "Groups": [
+    {
+      "GroupID": 1,
+      "GroupName": "1",
+      "GroupScore": 10,
+      "TestPoints": [
+        1, 6, 7, 12
+      ]
+    },
+    {
+      "GroupID": 2,
+      "GroupName": "2",
+      "GroupScore": 10,
+      "TestPoints": [
+        2, 8, 9, 10, 11, 13
+      ]
+    },
+    {
+      "GroupID": 3,
+      "GroupName": "3",
+      "GroupScore": 15,
+      "TestPoints": [
+        3, 14
+      ]
+    },
+    {
+      "GroupID": 4,
+      "GroupName": "4",
+      "GroupScore": 25,
+      "TestPoints": [
+        4, 15
+      ]
+    },
+    {
+      "GroupID": 5,
+      "GroupName": "5",
+      "GroupScore": 25,
+      "TestPoints": [
+        5, 16, 17
+      ]
+    }
+  ],
+  "Details": [
+    {
+      "ID": 1,
+      "Dependency": 0,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 2,
+      "Dependency": 12,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 3,
+      "Dependency": 13,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 4,
+      "Dependency": 14,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 5,
+      "Dependency": 15,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 6,
+      "Dependency": 1,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 7,
+      "Dependency": 6,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 8,
+      "Dependency": 2,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 9,
+      "Dependency": 8,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 10,
+      "Dependency": 9,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 11,
+      "Dependency": 10,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 12,
+      "Dependency": 7,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 13,
+      "Dependency": 11,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 14,
+      "Dependency": 3,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 15,
+      "Dependency": 4,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 16,
+      "Dependency": 5,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    },
+    {
+      "ID": 17,
+      "Dependency": 16,
+      "TimeLimit": 1000,
+      "MemoryLimit": 256000000,
+      "DiskLimit": 0,
+      "ValgrindTestOn": false
+    }
+  ],
+  "CompileTimeLimit": 30000,
+  "SPJ": {
+    "Compile": "classic",
+    "Run": "classic",
+    "Check": "compare"
+  },
+  "Scorer": 0
+}
