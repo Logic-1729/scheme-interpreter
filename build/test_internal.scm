@@ -1,5 +1,0 @@
-(define (test-internal)
-  (define x 100)
-  x)
-(test-internal)
-(exit)

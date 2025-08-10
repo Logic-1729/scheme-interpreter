@@ -1,5 +1,0 @@
-(let ((x 10))
-  (define y 20)
-  (set! y 30)
-  y)
-(exit)
