@@ -24,6 +24,38 @@ extern std::map<std::string, ExprType> reserved_words;
 //                             CONTROL STRUCTURES
 // ================================================================================
 
+// Helper function to compare two numeric values
+// Returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2
+int compareNumericValues(const Value &v1, const Value &v2) {
+    if (v1->v_type == V_INT && v2->v_type == V_INT) {
+        int n1 = dynamic_cast<Integer*>(v1.get())->n;
+        int n2 = dynamic_cast<Integer*>(v2.get())->n;
+        return (n1 < n2) ? -1 : (n1 > n2) ? 1 : 0;
+    }
+    else if (v1->v_type == V_RATIONAL && v2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(v1.get());
+        int n2 = dynamic_cast<Integer*>(v2.get())->n;
+        int left = r1->numerator;
+        int right = n2 * r1->denominator;
+        return (left < right) ? -1 : (left > right) ? 1 : 0;
+    }
+    else if (v1->v_type == V_INT && v2->v_type == V_RATIONAL) {
+        int n1 = dynamic_cast<Integer*>(v1.get())->n;
+        Rational* r2 = dynamic_cast<Rational*>(v2.get());
+        int left = n1 * r2->denominator;
+        int right = r2->numerator;
+        return (left < right) ? -1 : (left > right) ? 1 : 0;
+    }
+    else if (v1->v_type == V_RATIONAL && v2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(v1.get());
+        Rational* r2 = dynamic_cast<Rational*>(v2.get());
+        int left = r1->numerator * r2->denominator;
+        int right = r2->numerator * r1->denominator;
+        return (left < right) ? -1 : (left > right) ? 1 : 0;
+    }
+    throw RuntimeError("Wrong typename in numeric comparison");
+}
+
 /**
  * @brief Evaluate Let expression
  * Creates new environment bindings and evaluates body in that context
@@ -490,53 +522,88 @@ Value Variadic::eval(Assoc &e) { // evaluation of multi-operator primitive
 }
 
 Value Mult::evalRator(const Value &rand1, const Value &rand2) { // *
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 * 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return IntegerV((dynamic_cast<Integer*>(rand1.get())->n) * (dynamic_cast<Integer*>(rand2.get())->n));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_INT) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
+    }
+    // 有理数 * 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
         int n2 = dynamic_cast<Integer*>(rand2.get())->n;
-        return RationalV(rat1->numerator * n2, rat1->denominator);
-    } else if (rand1->v_type == V_INT and rand2->v_type == V_RATIONAL) {
+        return RationalV(r1->numerator * n2, r1->denominator);
+    }
+    // 整数 * 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
         int n1 = dynamic_cast<Integer*>(rand1.get())->n;
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return RationalV(n1 * rat2->numerator, rat2->denominator);
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_RATIONAL) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return RationalV(rat1->numerator * rat2->numerator, rat1->denominator * rat2->denominator);
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(n1 * r2->numerator, r2->denominator);
+    }
+    // 有理数 * 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(r1->numerator * r2->numerator, r1->denominator * r2->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value Plus::evalRator(const Value &rand1, const Value &rand2) { // +
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 + 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return IntegerV((dynamic_cast<Integer*>(rand1.get())->n) + (dynamic_cast<Integer*>(rand2.get())->n));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_INT) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
+    }
+    // 有理数 + 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
         int n2 = dynamic_cast<Integer*>(rand2.get())->n;
-        return RationalV(rat1->numerator + n2 * rat1->denominator, rat1->denominator);
-    } else if (rand1->v_type == V_INT and rand2->v_type == V_RATIONAL) {
+        return RationalV(r1->numerator + n2 * r1->denominator, r1->denominator);
+    }
+    // 整数 + 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
         int n1 = dynamic_cast<Integer*>(rand1.get())->n;
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return RationalV(n1 * rat2->denominator + rat2->numerator, rat2->denominator);
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_RATIONAL) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return RationalV(rat1->numerator * rat2->denominator + rat2->numerator * rat1->denominator, 
-                        rat1->denominator * rat2->denominator);
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(n1 * r2->denominator + r2->numerator, r2->denominator);
+    }
+    // 有理数 + 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(r1->numerator * r2->denominator + r2->numerator * r1->denominator,
+                        r1->denominator * r2->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value Minus::evalRator(const Value &rand1, const Value &rand2) { // -
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 - 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return IntegerV((dynamic_cast<Integer*>(rand1.get())->n) - (dynamic_cast<Integer*>(rand2.get())->n));
+    }
+    // 有理数 - 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        int n2 = dynamic_cast<Integer*>(rand2.get())->n;
+        return RationalV(r1->numerator - n2 * r1->denominator, r1->denominator);
+    }
+    // 整数 - 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
+        int n1 = dynamic_cast<Integer*>(rand1.get())->n;
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(n1 * r2->denominator - r2->numerator, r2->denominator);
+    }
+    // 有理数 - 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return RationalV(r1->numerator * r2->denominator - r2->numerator * r1->denominator,
+                        r1->denominator * r2->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value Div::evalRator(const Value &rand1, const Value &rand2) { // /
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 / 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         int dividend = dynamic_cast<Integer*>(rand1.get())->n;
         int divisor = dynamic_cast<Integer*>(rand2.get())->n;
         if (divisor == 0) {
@@ -544,24 +611,58 @@ Value Div::evalRator(const Value &rand1, const Value &rand2) { // /
         }
         return RationalV(dividend, divisor);
     }
+    // 有理数 / 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        int n2 = dynamic_cast<Integer*>(rand2.get())->n;
+        if (n2 == 0) {
+            throw(RuntimeError("Division by zero"));
+        }
+        return RationalV(r1->numerator, r1->denominator * n2);
+    }
+    // 整数 / 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
+        int n1 = dynamic_cast<Integer*>(rand1.get())->n;
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        if (r2->numerator == 0) {
+            throw(RuntimeError("Division by zero"));
+        }
+        return RationalV(n1 * r2->denominator, r2->numerator);
+    }
+    // 有理数 / 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        if (r2->numerator == 0) {
+            throw(RuntimeError("Division by zero"));
+        }
+        return RationalV(r1->numerator * r2->denominator, r1->denominator * r2->numerator);
+    }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value Less::evalRator(const Value &rand1, const Value &rand2) { // <
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 < 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) < (dynamic_cast<Integer*>(rand2.get())->n));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_INT) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
+    }
+    // 有理数 < 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
         int n2 = dynamic_cast<Integer*>(rand2.get())->n;
-        return BooleanV((rat1->numerator) < (n2 * rat1->denominator));
-    } else if (rand1->v_type == V_INT and rand2->v_type == V_RATIONAL) {
+        return BooleanV(r1->numerator < n2 * r1->denominator);
+    }
+    // 整数 < 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
         int n1 = dynamic_cast<Integer*>(rand1.get())->n;
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return BooleanV((n1 * rat2->denominator) < (rat2->numerator));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_RATIONAL) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return BooleanV((rat1->numerator * rat2->denominator) < (rat2->numerator * rat1->denominator));
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(n1 * r2->denominator < r2->numerator);
+    }
+    // 有理数 < 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(r1->numerator * r2->denominator < r2->numerator * r1->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
@@ -574,34 +675,79 @@ Value LessEq::evalRator(const Value &rand1, const Value &rand2) { // <=
 }
 
 Value Equal::evalRator(const Value &rand1, const Value &rand2) { // =
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 = 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) == (dynamic_cast<Integer*>(rand2.get())->n));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_INT) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
+    }
+    // 有理数 = 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
         int n2 = dynamic_cast<Integer*>(rand2.get())->n;
-        return BooleanV((rat1->numerator) == (n2 * rat1->denominator));
-    } else if (rand1->v_type == V_INT and rand2->v_type == V_RATIONAL) {
+        return BooleanV(r1->numerator == n2 * r1->denominator);
+    }
+    // 整数 = 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
         int n1 = dynamic_cast<Integer*>(rand1.get())->n;
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return BooleanV((n1 * rat2->denominator) == (rat2->numerator));
-    } else if (rand1->v_type == V_RATIONAL and rand2->v_type == V_RATIONAL) {
-        auto rat1 = dynamic_cast<Rational*>(rand1.get());
-        auto rat2 = dynamic_cast<Rational*>(rand2.get());
-        return BooleanV((rat1->numerator == rat2->numerator) && (rat1->denominator == rat2->denominator));
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(n1 * r2->denominator == r2->numerator);
+    }
+    // 有理数 = 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(r1->numerator * r2->denominator == r2->numerator * r1->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value GreaterEq::evalRator(const Value &rand1, const Value &rand2) { // >=
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 >= 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) >= (dynamic_cast<Integer*>(rand2.get())->n));
+    }
+    // 有理数 >= 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        int n2 = dynamic_cast<Integer*>(rand2.get())->n;
+        return BooleanV(r1->numerator >= n2 * r1->denominator);
+    }
+    // 整数 >= 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
+        int n1 = dynamic_cast<Integer*>(rand1.get())->n;
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(n1 * r2->denominator >= r2->numerator);
+    }
+    // 有理数 >= 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(r1->numerator * r2->denominator >= r2->numerator * r1->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
 
 Value Greater::evalRator(const Value &rand1, const Value &rand2) { // >
-    if (rand1->v_type == V_INT and rand2->v_type == V_INT) {
+    // 整数 > 整数
+    if (rand1->v_type == V_INT && rand2->v_type == V_INT) {
         return BooleanV((dynamic_cast<Integer*>(rand1.get())->n) > (dynamic_cast<Integer*>(rand2.get())->n));
+    }
+    // 有理数 > 整数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_INT) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        int n2 = dynamic_cast<Integer*>(rand2.get())->n;
+        return BooleanV(r1->numerator > n2 * r1->denominator);
+    }
+    // 整数 > 有理数
+    else if (rand1->v_type == V_INT && rand2->v_type == V_RATIONAL) {
+        int n1 = dynamic_cast<Integer*>(rand1.get())->n;
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(n1 * r2->denominator > r2->numerator);
+    }
+    // 有理数 > 有理数
+    else if (rand1->v_type == V_RATIONAL && rand2->v_type == V_RATIONAL) {
+        Rational* r1 = dynamic_cast<Rational*>(rand1.get());
+        Rational* r2 = dynamic_cast<Rational*>(rand2.get());
+        return BooleanV(r1->numerator * r2->denominator > r2->numerator * r1->denominator);
     }
     throw(RuntimeError("Wrong typename"));
 }
@@ -612,12 +758,11 @@ Value LessVar::evalRator(const std::vector<Value> &args) { // < with multiple ar
     }
     
     for (size_t i = 0; i < args.size() - 1; i++) {
-        if (args[i]->v_type != V_INT || args[i+1]->v_type != V_INT) {
+        if ((args[i]->v_type != V_INT && args[i]->v_type != V_RATIONAL) || 
+            (args[i+1]->v_type != V_INT && args[i+1]->v_type != V_RATIONAL)) {
             throw(RuntimeError("Wrong typename"));
         }
-        int n1 = dynamic_cast<Integer*>(args[i].get())->n;
-        int n2 = dynamic_cast<Integer*>(args[i+1].get())->n;
-        if (!(n1 < n2)) {
+        if (compareNumericValues(args[i], args[i+1]) >= 0) {
             return BooleanV(false);
         }
     }
@@ -648,12 +793,11 @@ Value EqualVar::evalRator(const std::vector<Value> &args) { // = with multiple a
     }
     
     for (size_t i = 0; i < args.size() - 1; i++) {
-        if (args[i]->v_type != V_INT || args[i+1]->v_type != V_INT) {
+        if ((args[i]->v_type != V_INT && args[i]->v_type != V_RATIONAL) || 
+            (args[i+1]->v_type != V_INT && args[i+1]->v_type != V_RATIONAL)) {
             throw(RuntimeError("Wrong typename"));
         }
-        int n1 = dynamic_cast<Integer*>(args[i].get())->n;
-        int n2 = dynamic_cast<Integer*>(args[i+1].get())->n;
-        if (!(n1 == n2)) {
+        if (compareNumericValues(args[i], args[i+1]) != 0) {
             return BooleanV(false);
         }
     }
@@ -666,12 +810,11 @@ Value GreaterEqVar::evalRator(const std::vector<Value> &args) { // >= with multi
     }
     
     for (size_t i = 0; i < args.size() - 1; i++) {
-        if (args[i]->v_type != V_INT || args[i+1]->v_type != V_INT) {
+        if ((args[i]->v_type != V_INT && args[i]->v_type != V_RATIONAL) || 
+            (args[i+1]->v_type != V_INT && args[i+1]->v_type != V_RATIONAL)) {
             throw(RuntimeError("Wrong typename"));
         }
-        int n1 = dynamic_cast<Integer*>(args[i].get())->n;
-        int n2 = dynamic_cast<Integer*>(args[i+1].get())->n;
-        if (!(n1 >= n2)) {
+        if (compareNumericValues(args[i], args[i+1]) < 0) {
             return BooleanV(false);
         }
     }
@@ -684,12 +827,11 @@ Value GreaterVar::evalRator(const std::vector<Value> &args) { // > with multiple
     }
     
     for (size_t i = 0; i < args.size() - 1; i++) {
-        if (args[i]->v_type != V_INT || args[i+1]->v_type != V_INT) {
+        if ((args[i]->v_type != V_INT && args[i]->v_type != V_RATIONAL) || 
+            (args[i+1]->v_type != V_INT && args[i+1]->v_type != V_RATIONAL)) {
             throw(RuntimeError("Wrong typename"));
         }
-        int n1 = dynamic_cast<Integer*>(args[i].get())->n;
-        int n2 = dynamic_cast<Integer*>(args[i+1].get())->n;
-        if (!(n1 > n2)) {
+        if (compareNumericValues(args[i], args[i+1]) <= 0) {
             return BooleanV(false);
         }
     }
@@ -884,15 +1026,38 @@ Value MultVar::evalRator(const std::vector<Value> &args) { // * with multiple ar
         return IntegerV(1); // (* ) → 1 (multiplicative identity)
     }
     
-    int result = 1;
+    // Check if any argument is rational
+    bool hasRational = false;
     for (const auto& arg : args) {
-        if (arg->v_type == V_INT) {
-            result *= dynamic_cast<Integer*>(arg.get())->n;
-        } else {
+        if (arg->v_type == V_RATIONAL) {
+            hasRational = true;
+            break;
+        } else if (arg->v_type != V_INT) {
             throw(RuntimeError("Wrong typename"));
         }
     }
-    return IntegerV(result);
+    
+    if (hasRational) {
+        // Result will be rational - use RationalV arithmetic
+        int numerator = 1, denominator = 1;
+        for (const auto& arg : args) {
+            if (arg->v_type == V_INT) {
+                numerator *= dynamic_cast<Integer*>(arg.get())->n;
+            } else if (arg->v_type == V_RATIONAL) {
+                Rational* r = dynamic_cast<Rational*>(arg.get());
+                numerator *= r->numerator;
+                denominator *= r->denominator;
+            }
+        }
+        return RationalV(numerator, denominator);
+    } else {
+        // All integers - use integer arithmetic
+        int result = 1;
+        for (const auto& arg : args) {
+            result *= dynamic_cast<Integer*>(arg.get())->n;
+        }
+        return IntegerV(result);
+    }
 }
 
 Value PlusVar::evalRator(const std::vector<Value> &args) { // + with multiple args
@@ -900,15 +1065,40 @@ Value PlusVar::evalRator(const std::vector<Value> &args) { // + with multiple ar
         return IntegerV(0); // (+ ) → 0 (additive identity)
     }
     
-    int result = 0;
+    // Check if any argument is rational
+    bool hasRational = false;
     for (const auto& arg : args) {
-        if (arg->v_type == V_INT) {
-            result += dynamic_cast<Integer*>(arg.get())->n;
-        } else {
+        if (arg->v_type == V_RATIONAL) {
+            hasRational = true;
+            break;
+        } else if (arg->v_type != V_INT) {
             throw(RuntimeError("Wrong typename"));
         }
     }
-    return IntegerV(result);
+    
+    if (hasRational) {
+        // Result will be rational - start with 0/1
+        int numerator = 0, denominator = 1;
+        for (const auto& arg : args) {
+            if (arg->v_type == V_INT) {
+                int n = dynamic_cast<Integer*>(arg.get())->n;
+                numerator = numerator + n * denominator; // Add integer as n/1
+            } else if (arg->v_type == V_RATIONAL) {
+                Rational* r = dynamic_cast<Rational*>(arg.get());
+                // Add r->numerator/r->denominator to numerator/denominator
+                numerator = numerator * r->denominator + r->numerator * denominator;
+                denominator = denominator * r->denominator;
+            }
+        }
+        return RationalV(numerator, denominator);
+    } else {
+        // All integers - use integer arithmetic
+        int result = 0;
+        for (const auto& arg : args) {
+            result += dynamic_cast<Integer*>(arg.get())->n;
+        }
+        return IntegerV(result);
+    }
 }
 
 Value MinusVar::evalRator(const std::vector<Value> &args) { // - with multiple args
@@ -919,24 +1109,59 @@ Value MinusVar::evalRator(const std::vector<Value> &args) { // - with multiple a
         // (- x) → -x (negation)
         if (args[0]->v_type == V_INT) {
             return IntegerV(-(dynamic_cast<Integer*>(args[0].get())->n));
+        } else if (args[0]->v_type == V_RATIONAL) {
+            Rational* r = dynamic_cast<Rational*>(args[0].get());
+            return RationalV(-(r->numerator), r->denominator);
         } else {
             throw(RuntimeError("Wrong typename"));
         }
     }
     
-    // (- x y z ...) → x - y - z - ...
-    if (args[0]->v_type != V_INT) {
-        throw(RuntimeError("Wrong typename"));
-    }
-    int result = dynamic_cast<Integer*>(args[0].get())->n;
-    for (size_t i = 1; i < args.size(); i++) {
-        if (args[i]->v_type == V_INT) {
-            result -= dynamic_cast<Integer*>(args[i].get())->n;
-        } else {
+    // Check if any argument is rational
+    bool hasRational = false;
+    for (const auto& arg : args) {
+        if (arg->v_type == V_RATIONAL) {
+            hasRational = true;
+            break;
+        } else if (arg->v_type != V_INT) {
             throw(RuntimeError("Wrong typename"));
         }
     }
-    return IntegerV(result);
+    
+    if (hasRational) {
+        // Result will be rational
+        int numerator, denominator;
+        
+        // Initialize with first argument
+        if (args[0]->v_type == V_INT) {
+            numerator = dynamic_cast<Integer*>(args[0].get())->n;
+            denominator = 1;
+        } else {
+            Rational* r = dynamic_cast<Rational*>(args[0].get());
+            numerator = r->numerator;
+            denominator = r->denominator;
+        }
+        
+        // Subtract remaining arguments
+        for (size_t i = 1; i < args.size(); i++) {
+            if (args[i]->v_type == V_INT) {
+                int n = dynamic_cast<Integer*>(args[i].get())->n;
+                numerator = numerator - n * denominator;
+            } else if (args[i]->v_type == V_RATIONAL) {
+                Rational* r = dynamic_cast<Rational*>(args[i].get());
+                numerator = numerator * r->denominator - r->numerator * denominator;
+                denominator = denominator * r->denominator;
+            }
+        }
+        return RationalV(numerator, denominator);
+    } else {
+        // All integers - use integer arithmetic
+        int result = dynamic_cast<Integer*>(args[0].get())->n;
+        for (size_t i = 1; i < args.size(); i++) {
+            result -= dynamic_cast<Integer*>(args[i].get())->n;
+        }
+        return IntegerV(result);
+    }
 }
 
 // GCD 辅助函数（用于有理数化简）
