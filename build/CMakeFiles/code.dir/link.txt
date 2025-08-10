@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/code.dir/src/main.cpp.o CMakeFiles/code.dir/src/syntax.cpp.o CMakeFiles/code.dir/src/RE.cpp.o CMakeFiles/code.dir/src/parser.cpp.o CMakeFiles/code.dir/src/expr.cpp.o CMakeFiles/code.dir/src/value.cpp.o CMakeFiles/code.dir/src/evaluation.cpp.o CMakeFiles/code.dir/src/Def.cpp.o -o code 

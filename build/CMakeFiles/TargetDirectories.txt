@@ -1,0 +1,3 @@
+/home/logic/scheme-interpreter/build/CMakeFiles/code.dir
+/home/logic/scheme-interpreter/build/CMakeFiles/edit_cache.dir
+/home/logic/scheme-interpreter/build/CMakeFiles/rebuild_cache.dir

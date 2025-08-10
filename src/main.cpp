@@ -10,6 +10,48 @@
 extern std::map<std::string, ExprType> primitives;
 extern std::map<std::string, ExprType> reserved_words;
 
+// 检查表达式是否是显式的 void 调用或在允许的嵌套结构中
+bool isExplicitVoidCall(Expr expr) {
+    // 检查是否是直接的 MakeVoid (即 (void))
+    MakeVoid* make_void_expr = dynamic_cast<MakeVoid*>(expr.get());
+    if (make_void_expr != nullptr) {
+        return true;
+    }
+    
+    // 检查是否是 Apply 表达式调用 void
+    Apply* apply_expr = dynamic_cast<Apply*>(expr.get());
+    if (apply_expr != nullptr) {
+        Var* var_expr = dynamic_cast<Var*>(apply_expr->rator.get());
+        if (var_expr != nullptr && var_expr->x == "void") {
+            return true;
+        }
+    }
+    
+    // 检查是否是 begin 表达式，且最后一个表达式是 void 调用
+    Begin* begin_expr = dynamic_cast<Begin*>(expr.get());
+    if (begin_expr != nullptr && !begin_expr->es.empty()) {
+        return isExplicitVoidCall(begin_expr->es.back());
+    }
+    
+    // 检查是否是 if 表达式的分支包含显式 void 调用
+    If* if_expr = dynamic_cast<If*>(expr.get());
+    if (if_expr != nullptr) {
+        return isExplicitVoidCall(if_expr->conseq) || isExplicitVoidCall(if_expr->alter);
+    }
+    
+    // 检查是否是 cond 表达式的某个分支包含显式 void 调用
+    Cond* cond_expr = dynamic_cast<Cond*>(expr.get());
+    if (cond_expr != nullptr) {
+        for (const auto& clause : cond_expr->clauses) {
+            if (clause.size() > 1 && isExplicitVoidCall(clause.back())) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 void REPL(){
     // read - evaluation - print loop with define grouping
     Assoc global_env = empty();
@@ -43,26 +85,16 @@ void REPL(){
                 if (val->v_type == V_TERMINATE)
                     break;
                 
-                // 检查是否是 set!, set-car!, set-cdr! 表达式 - 这些不显示返回值
-                Set* set_expr = dynamic_cast<Set*>(expr.get());
-                
-                // 检查是否是 set-car!, set-cdr!, display 的函数调用
-                Apply* apply_expr = dynamic_cast<Apply*>(expr.get());
-                bool is_void_returning_func = false;
-                if (apply_expr != nullptr) {
-                    Var* var_expr = dynamic_cast<Var*>(apply_expr->rator.get());
-                    if (var_expr != nullptr) {
-                        if (var_expr->x == "set-car!" || var_expr->x == "set-cdr!" || var_expr->x == "display") {
-                            is_void_returning_func = true;
-                        }
+                // 简化的显示逻辑：
+                // 如果结果是 void，只有在显式调用 (void) 或在允许的嵌套结构中时才显示
+                if (val->v_type == V_VOID) {
+                    if (isExplicitVoidCall(expr)) {
+                        val->show(std::cout);
+                        puts("");
                     }
-                }
-                
-                if (set_expr != nullptr || is_void_returning_func) {
-                    // set!, set-car!, set-cdr!, display 表达式不显示返回值，只显示空行
-                    puts("");
+                    // 其他返回 void 的表达式不输出任何内容
                 } else {
-                    // 其他表达式显示结果
+                    // 非 void 结果正常显示
                     val->show(std::cout);
                     puts("");
                 }
